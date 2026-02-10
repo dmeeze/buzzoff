@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BuzzOff – Detect annoying sounds</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#111111">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-brand">
+                <h1 class="app-title">BuzzOff</h1>
+                <p class="app-subtitle">Detect annoying sounds</p>
+            </div>
+            <div class="header-actions">
+                <button id="options-btn" class="icon-btn" title="Options">⚙</button>
+                <button id="help-btn" class="icon-btn" title="Help &amp; About">?</button>
+            </div>
+        </header>
+
+        <!-- Status + Start row -->
+        <div class="status-row">
+            <div id="status-indicator" class="status-indicator status-idle">
+                <div class="status-inner">
+                    <span class="status-dot"></span>
+                    <span class="status-text" id="status-text">READY</span>
+                </div>
+                <div class="status-subtext" id="status-subtext">Press Start to begin listening</div>
+            </div>
+            <button id="start-stop-btn" class="start-btn">
+                <span class="start-icon">▶</span>
+                <span class="start-label">Start</span>
+            </button>
+        </div>
+
+        <!-- Sections wrapper (fills remaining viewport height) -->
+        <div class="sections-wrapper">
+
+        <!-- Detection history -->
+        <section class="section history-section">
+            <div class="section-header">
+                <span class="section-title">Detection History</span>
+                <div class="time-tabs">
+                    <button class="time-tab" data-minutes="5">5m</button>
+                    <button class="time-tab active" data-minutes="15">15m</button>
+                    <button class="time-tab" data-minutes="30">30m</button>
+                </div>
+            </div>
+            <canvas id="history-canvas" class="history-canvas"></canvas>
+        </section>
+
+        <!-- Live FFT -->
+        <section class="section fft-section">
+            <div class="section-header">
+                <span class="section-title">Live Spectrum</span>
+                <span class="fft-range-label">0 – 22 kHz</span>
+            </div>
+            <canvas id="fft-canvas" class="fft-canvas"></canvas>
+        </section>
+
+        </div>
+
+    </div>
+
+    <!-- Options dialog -->
+    <dialog id="options-dialog" class="help-dialog">
+        <div class="help-content">
+            <div class="help-header">
+                <h2 class="help-title">Options</h2>
+                <button id="options-close" class="icon-btn">✕</button>
+            </div>
+            <div class="options-body">
+                <!-- Frequency Band + Sensitivity -->
+                <div class="control-groups">
+                    <div class="control-group">
+                        <span class="control-group-label">Frequency Band</span>
+                        <div class="mode-tabs">
+                            <button id="annoy-tab" class="tab active">Annoy</button>
+                            <button id="mosquito-tab" class="tab">Mosquito</button>
+                            <button id="custom-tab" class="tab">Custom</button>
+                        </div>
+                        <div id="custom-band-row" class="custom-band-inputs hidden">
+                            <input type="number" id="band-min" value="16000" min="100" max="22000" step="100" class="freq-input">
+                            <span class="hz-label">–</span>
+                            <input type="number" id="band-max" value="18500" min="100" max="22000" step="100" class="freq-input">
+                            <span class="hz-label">Hz</span>
+                        </div>
+                    </div>
+                    <div class="control-group control-group-right">
+                        <span class="control-group-label">Sensitivity</span>
+                        <div class="sens-tabs">
+                            <button class="sens-tab" data-value="low">Low</button>
+                            <button class="sens-tab active" data-value="med">Med</button>
+                            <button class="sens-tab" data-value="high">High</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Detection -->
+                <div class="control-group">
+                    <span class="control-group-label">Detection</span>
+                    <div class="alerts-row">
+                        <button id="noise-floor-toggle" class="toggle-btn" data-active="true">Noise floor</button>
+                    </div>
+                </div>
+                <!-- When detected -->
+                <div class="control-group">
+                    <span class="control-group-label">When detected</span>
+                    <div class="alerts-row">
+                        <button id="notify-toggle" class="toggle-btn" data-active="false">Notify</button>
+                        <button id="beep-toggle" class="toggle-btn" data-active="false">Beep</button>
+                        <button id="tab-title-toggle" class="toggle-btn" data-active="true">Tab title</button>
+                        <button id="flash-toggle" class="toggle-btn" data-active="false">Flash</button>
+                    </div>
+                </div>
+                <!-- Theme -->
+                <div class="control-group">
+                    <span class="control-group-label">Theme</span>
+                    <div class="mode-tabs">
+                        <button class="theme-tab tab" data-theme="light">Light</button>
+                        <button class="theme-tab tab" data-theme="dark">Dark</button>
+                        <button class="theme-tab tab" data-theme="80s">80s</button>
+                        <button class="theme-tab tab active" data-theme="auto">Auto</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Help dialog -->
+    <dialog id="help-dialog" class="help-dialog">
+        <div class="help-content">
+            <div class="help-header">
+                <h2 class="help-title">About BuzzOff</h2>
+                <button id="help-close" class="icon-btn">✕</button>
+            </div>
+            <div class="help-body">
+                <p>BuzzOff listens for high-frequency tones used as mosquito repellents, "teen deterrents," or other annoying sound devices and alerts you when one is detected.</p>
+
+                <p class="privacy-note">NOTE : BuzzOff <strong>does not record or store any audio</strong>. It only analyzes the live frequency spectrum in real time, entirely within your browser. No audio or data ever leaves your device.</p>
+
+                <h3>How it works</h3>
+                <p>BuzzOff uses your computer's microphone to capture audio, then analyzes the frequency spectrum in real time looking for energy in the target band. It can only hear what your microphone can hear — so physical distance, walls, and your hardware's frequency response all affect results.</p>
+                <p>If your computer has more than one microphone or audio input (e.g. built-in mic, USB interface, headset), you need to select the right one in your <strong>system sound settings</strong> — BuzzOff uses whichever input your system has set as the default. There is no way to choose the input device from within this page.</p>
+
+                <h3>Modes</h3>
+                <ul>
+                    <li><strong>Annoy</strong> — Scans 14 .. 20 kHz, the broad range used by deterrent devices</li>
+                    <li><strong>Mosquito</strong> — Focused on 16 .. 18.5 kHz, the classic "mosquito tone"</li>
+                    <li><strong>Custom</strong> — Set your own frequency range</li>
+                </ul>
+
+                <h3>Sensitivity &amp; noise floor</h3>
+                <p>Higher sensitivity triggers on weaker signals but may produce more false positives. Lower sensitivity requires a stronger signal to trigger.</p>
+                <p><strong>Noise floor</strong> filters out broadband noise (white noise, fans, fabric rustling) that happens to have sound in the target frequency range. 
+                    When enabled, a signal must stand out as a spike from the surrounding spectrum to count as a detection. 
+                    Turn it off if you're missing real detections in a quiet environment.</p>
+
+                <h3>Background tabs</h3>
+                <p>Browsers throttle background tabs to save resources. When BuzzOff is not the active tab, detection may be delayed or missed. For best accuracy, keep the BuzzOff window visible on screen — even in a small window or a second monitor.</p>
+                <p>Tab title and screen flash alerts are most reliable when the tab is visible. Browser notifications work independently and are not affected by throttling.</p>
+
+                <h3>Alerts</h3>
+                <ul>
+                    <li><strong>Notify</strong> — Sends a browser notification when a tone is detected. Useful when running in a background tab</li>
+                    <li><strong>Beep</strong> — Plays an audible 880 Hz tone when detection starts</li>
+                    <li><strong>Tab title</strong> — Changes the browser tab title to "⚠ DETECTED" so you can spot it at a glance without looking at the page. On by default</li>
+                    <li><strong>Flash</strong> — Briefly flashes the screen red on detection</li>
+                </ul>
+
+            </div>
+        </div>
+    </dialog>
+
+    <div id="flash-overlay"></div>
+    <div id="history-tooltip"></div>
+
+    <script src="audioAnalyzer.js"></script>
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
+    </script>
+</body>
+</html>
