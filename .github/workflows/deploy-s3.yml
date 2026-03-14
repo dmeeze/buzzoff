@@ -71,6 +71,10 @@ jobs:
         # Replace version placeholder in index.html to bust browser cache for JS/CSS
         sed -i "s|__VERSION__|${VERSION}|g" publish/index.html
 
+        # Replace publish date placeholder in index.html
+        PUBLISH_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        sed -i "s|__PUBLISH_DATE__|${PUBLISH_DATE}|g" publish/index.html
+
         echo "PUBLISH_PATH=publish" >> $GITHUB_ENV
         echo "Publish directory contents:"
         ls -la publish/

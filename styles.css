@@ -817,6 +817,27 @@ dialog .help-tip.open .help-tip-text {
     padding: 0.6rem 0.75rem;
 }
 
+.fa-icon {
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    display: block;
+}
+
+.version-footer {
+    margin-top: 1.5rem;
+    font-size: 0.72rem;
+    opacity: 0.45;
+    text-align: right;
+    font-family: monospace;
+}
+
+.attribution-footer {
+    font-size: 0.72rem;
+    opacity: 0.45;
+    text-align: right;
+}
+
 /* ── Screen flash overlay ───────────────────────── */
 
 #flash-overlay {
