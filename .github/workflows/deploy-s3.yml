@@ -1,0 +1,145 @@
+name: Deploy to S3
+
+on:
+  push:
+    branches: [ release, staging ]
+  workflow_dispatch:
+    inputs:
+      base_href:
+        description: 'Base href for deployment (e.g., /buzzoff/)'
+        required: false
+        default: '/buzzoff/'
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set deployment variables
+      id: vars
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          BASE_HREF="${{ github.event.inputs.base_href }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+        else
+          if [ "${{ github.ref }}" = "refs/heads/release" ]; then
+            BASE_HREF="/buzzoff/"
+            ENVIRONMENT="production"
+          elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
+            BASE_HREF="/buzzoff-staging/"
+            ENVIRONMENT="staging"
+          fi
+        fi
+
+        echo "base_href=${BASE_HREF}" >> $GITHUB_OUTPUT
+        echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+        echo "s3_bucket=${{ secrets.AWS_S3_BUCKET_NAME }}" >> $GITHUB_OUTPUT
+        echo "cloudfront_distribution_id=${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_OUTPUT
+
+    - name: Prepare publish directory
+      run: |
+        VERSION=$(git rev-parse --short HEAD)
+        BASE_HREF="${{ steps.vars.outputs.base_href }}"
+        echo "Base href: $BASE_HREF"
+        echo "Version: $VERSION"
+
+        # Copy static files to publish dir
+        mkdir -p publish
+        cp index.html app.js audioAnalyzer.js styles.css sw.js manifest.json \
+           icon.svg icon-maskable.svg publish/
+
+        # Inject <base> tag into index.html for correct subpath resolution
+        sed -i "s|<head>|<head>\n    <base href=\"${BASE_HREF}\">|" publish/index.html
+
+        # Update manifest.json start_url and scope
+        sed -i "s|\"start_url\": \"./\"|\"start_url\": \"${BASE_HREF}\", \"scope\": \"${BASE_HREF}\"|" publish/manifest.json
+
+        # Bump service worker cache key with git version to force cache refresh on deploy
+        sed -i "s|'buzzoff-v1'|'buzzoff-${VERSION}'|" publish/sw.js
+
+        echo "PUBLISH_PATH=publish" >> $GITHUB_ENV
+        echo "Publish directory contents:"
+        ls -la publish/
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Deploy to S3
+      run: |
+        if [ "${{ steps.vars.outputs.base_href }}" = "/" ]; then
+          # Root deployment - static assets with long cache
+          aws s3 sync "${PUBLISH_PATH}/" "s3://${{ steps.vars.outputs.s3_bucket }}/" \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "*.html" \
+            --exclude "manifest.json" \
+            --exclude "sw.js"
+
+          # HTML and PWA files with short cache
+          aws s3 sync "${PUBLISH_PATH}/" "s3://${{ steps.vars.outputs.s3_bucket }}/" \
+            --cache-control "public, max-age=300, must-revalidate" \
+            --include "*.html" \
+            --include "manifest.json" \
+            --include "sw.js"
+        else
+          SUBDIR=$(echo "${{ steps.vars.outputs.base_href }}" | sed 's|^/||' | sed 's|/$||')
+
+          # Subpath deployment - static assets with long cache
+          aws s3 sync "${PUBLISH_PATH}/" "s3://${{ steps.vars.outputs.s3_bucket }}/${SUBDIR}/" \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "*.html" \
+            --exclude "manifest.json" \
+            --exclude "sw.js"
+
+          # HTML and PWA files with short cache
+          aws s3 sync "${PUBLISH_PATH}/" "s3://${{ steps.vars.outputs.s3_bucket }}/${SUBDIR}/" \
+            --cache-control "public, max-age=300, must-revalidate" \
+            --include "*.html" \
+            --include "manifest.json" \
+            --include "sw.js"
+        fi
+
+    - name: Invalidate CloudFront cache
+      if: ${{ steps.vars.outputs.cloudfront_distribution_id != '' }}
+      run: |
+        if [ "${{ steps.vars.outputs.base_href }}" = "/" ]; then
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ steps.vars.outputs.cloudfront_distribution_id }}" \
+            --paths "/*"
+        else
+          SUBDIR=$(echo "${{ steps.vars.outputs.base_href }}" | sed 's|^/||' | sed 's|/$||')
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ steps.vars.outputs.cloudfront_distribution_id }}" \
+            --paths "/${SUBDIR}/*"
+        fi
+
+        echo "CloudFront cache invalidation triggered for distribution: ${{ steps.vars.outputs.cloudfront_distribution_id }}"
+
+    - name: Deploy summary
+      run: |
+        echo "## Deploy Complete" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Environment:** ${{ steps.vars.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Base href:** ${{ steps.vars.outputs.base_href }}" >> $GITHUB_STEP_SUMMARY
+        echo "**URL:** https://drewmayo.com${{ steps.vars.outputs.base_href }}" >> $GITHUB_STEP_SUMMARY
+        echo "**S3 bucket:** ${{ steps.vars.outputs.s3_bucket }}" >> $GITHUB_STEP_SUMMARY
+        if [ -n "${{ steps.vars.outputs.cloudfront_distribution_id }}" ]; then
+          echo "**CloudFront distribution:** ${{ steps.vars.outputs.cloudfront_distribution_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Cache invalidation:** Triggered" >> $GITHUB_STEP_SUMMARY
+        fi
