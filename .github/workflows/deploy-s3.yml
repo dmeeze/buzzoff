@@ -57,7 +57,7 @@ jobs:
         # Copy static files to publish dir
         mkdir -p publish
         cp index.html app.js audioAnalyzer.js styles.css sw.js manifest.json \
-           icon.svg icon-maskable.svg publish/
+           icon.svg icon-maskable.svg icon-dark.svg icon-light.svg icon-80s.svg publish/
 
         # Inject <base> tag into index.html for correct subpath resolution
         sed -i "s|<head>|<head>\n    <base href=\"${BASE_HREF}\">|" publish/index.html
