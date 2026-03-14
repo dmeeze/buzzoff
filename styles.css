@@ -528,10 +528,28 @@ html, body {
     pointer-events: none;
 }
 
+.help-tip.open .help-tip-text {
+    pointer-events: auto;
+}
+
 .help-tip:hover .help-tip-text,
 .help-tip:focus .help-tip-text,
 .help-tip.open .help-tip-text {
     display: block;
+}
+
+/* Inside dialogs, suppress clipped CSS hover — use click (.open) with fixed positioning instead */
+dialog .help-tip:hover .help-tip-text,
+dialog .help-tip:focus .help-tip-text {
+    display: none;
+}
+
+dialog .help-tip.open .help-tip-text {
+    display: block;
+    position: fixed;
+    transform: none;
+    left: auto;
+    bottom: auto;
 }
 
 /* ── Option tabs (inside options dialog) ──────────── */

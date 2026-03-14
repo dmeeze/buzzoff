@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.help-tip').forEach(tip => {
         const key = tip.dataset.tipKey;
         if (key && TIPS[key]) {
-            tip.querySelector('.help-tip-text').textContent = TIPS[key];
+            tip.querySelector('.help-tip-text').innerHTML = TIPS[key];
             tip.setAttribute('aria-label', tip.closest('.control-group-label')
                 ?.firstChild?.textContent?.trim() + ' help');
         }
@@ -182,11 +182,23 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             const isOpen = tip.classList.contains('open');
             document.querySelectorAll('.help-tip.open').forEach(t => t.classList.remove('open'));
-            if (!isOpen) tip.classList.add('open');
+            if (!isOpen) {
+                tip.classList.add('open');
+                const tipText = tip.querySelector('.help-tip-text');
+                const rect = tip.getBoundingClientRect();
+                const tipWidth = 200;
+                let left = rect.left + rect.width / 2 - tipWidth / 2;
+                left = Math.max(8, Math.min(left, window.innerWidth - tipWidth - 8));
+                tipText.style.left = left + 'px';
+                tipText.style.top = (rect.top - 6) + 'px';
+                tipText.style.transform = 'translateY(-100%)';
+            }
         });
     });
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.help-tip.open').forEach(t => t.classList.remove('open'));
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.help-tip-text')) {
+            document.querySelectorAll('.help-tip.open').forEach(t => t.classList.remove('open'));
+        }
     });
 
     // ── Start / Stop ──────────────────────────────────
