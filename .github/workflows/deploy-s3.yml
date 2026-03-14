@@ -68,6 +68,9 @@ jobs:
         # Bump service worker cache key with git version to force cache refresh on deploy
         sed -i "s|'buzzoff-v1'|'buzzoff-${VERSION}'|" publish/sw.js
 
+        # Replace version placeholder in index.html to bust browser cache for JS/CSS
+        sed -i "s|__VERSION__|${VERSION}|g" publish/index.html
+
         echo "PUBLISH_PATH=publish" >> $GITHUB_ENV
         echo "Publish directory contents:"
         ls -la publish/
