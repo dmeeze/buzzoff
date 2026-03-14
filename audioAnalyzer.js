@@ -33,6 +33,11 @@ const audioAnalyzer = {
     // Timing
     lastSampleTime: 0,
 
+    // Adaptive rendering
+    _renderInterval: 0,     // ms between renders; 0 = every rAF frame
+    _lastRenderTime: 0,
+    _frameTimes: [],        // rolling window of recent frame durations
+
     // Callbacks
     onDetectionChange: null,    // fn(state) — 'clear' | 'detected'
 
@@ -117,7 +122,7 @@ const audioAnalyzer = {
 
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.analyser     = this.audioContext.createAnalyser();
-        this.analyser.fftSize = 8192;
+        this.analyser.fftSize = 4096;
         this.bufferLength = this.analyser.frequencyBinCount;
         this.dataArray    = new Uint8Array(this.bufferLength);
 
@@ -128,6 +133,9 @@ const audioAnalyzer = {
         this.consecutiveSeconds = 0;
         this.detectionState     = 'clear';
         this.lastSampleTime     = performance.now();
+        this._renderInterval    = 0;
+        this._lastRenderTime    = 0;
+        this._frameTimes        = [];
 
         this._draw();
         this.sampleIntervalId = setInterval(() => this._tick(), 1000);
@@ -210,9 +218,30 @@ const audioAnalyzer = {
         this._sample(performance.now());
     },
 
-    // Render loop — rAF, pauses in background tabs (fine, nobody's watching)
+    // Render loop — rAF, pauses in background tabs (fine, nobody's watching).
+    // Tracks actual frame times and throttles render rate when device is slow.
     _draw() {
         this.animationId = requestAnimationFrame(() => this._draw());
+
+        const now = performance.now();
+
+        // Skip this frame if we're throttling and not enough time has elapsed
+        if (this._renderInterval > 0 && now - this._lastRenderTime < this._renderInterval) return;
+
+        // Measure frame gap and adapt throttle every 20 rendered frames
+        if (this._lastRenderTime > 0) {
+            this._frameTimes.push(now - this._lastRenderTime);
+            if (this._frameTimes.length > 20) this._frameTimes.shift();
+            if (this._frameTimes.length === 20) {
+                const avg = this._frameTimes.reduce((a, b) => a + b, 0) / 20;
+                if      (avg > 60) this._renderInterval = 67;   // < ~17fps → target 15fps
+                else if (avg > 40) this._renderInterval = 50;   // < ~25fps → target 20fps
+                else if (avg > 25) this._renderInterval = 33;   // < ~40fps → target 30fps
+                else               this._renderInterval = 0;    // fast enough → native rate
+            }
+        }
+        this._lastRenderTime = now;
+
         this.analyser.getByteFrequencyData(this.dataArray);
         this._drawFFT();
         this._drawHistory();
