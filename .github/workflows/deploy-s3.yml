@@ -65,11 +65,8 @@ jobs:
         # Update manifest.json start_url and scope
         sed -i "s|\"start_url\": \"./\"|\"start_url\": \"${BASE_HREF}\", \"scope\": \"${BASE_HREF}\"|" publish/manifest.json
 
-        # Bump service worker cache key with git version to force cache refresh on deploy
-        sed -i "s|'buzzoff-v1'|'buzzoff-${VERSION}'|" publish/sw.js
-
-        # Replace version placeholder in index.html to bust browser cache for JS/CSS
-        sed -i "s|__VERSION__|${VERSION}|g" publish/index.html
+        # Replace version placeholder in index.html and sw.js
+        sed -i "s|__VERSION__|${VERSION}|g" publish/index.html publish/sw.js
 
         # Replace publish date placeholder in index.html
         PUBLISH_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")

@@ -1,10 +1,10 @@
-const CACHE = 'buzzoff-v1';
+const CACHE = 'buzzoff-__VERSION__';
 const ASSETS = [
   './',
   './index.html',
-  './app.js',
-  './audioAnalyzer.js',
-  './styles.css',
+  './app.js?v=__VERSION__',
+  './audioAnalyzer.js?v=__VERSION__',
+  './styles.css?v=__VERSION__',
   './manifest.json',
   './icon.svg',
   './icon-maskable.svg',
