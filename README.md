@@ -26,6 +26,10 @@ Filters out broadband background noise (fans, air conditioning, fabric rustling)
 
 A full 0–22 kHz FFT display shows the live audio spectrum, with the target frequency band highlighted so you can see signals as they appear. Fills the available screen space.
 
+### Spectrum detail
+
+Three levels — Low (1024 bins), Med (2048 bins), High (4096 bins) — trade frequency resolution for CPU cost. Low is recommended for older or mobile devices; High gives the finest resolution.
+
 ### Detection history
 
 A scrolling timeline shows signal intensity over the last 5, 15, or 30 minutes. Hover or tap a detection segment to see its exact time range.
@@ -38,6 +42,16 @@ Choose any combination of alert types when a tone is detected:
 - **Beep** — audible 880 Hz alert tone
 - **Tab title** — changes to "⚠ DETECTED" (on by default)
 - **Flash** — briefly flashes the screen red
+
+## Why I wrote this
+
+Some jokers at school think it's hilarious to play the high-pitched "mosquito" tones to annoy the other kids in class with pure plausible deniability. The teacher can't hear the tone, so nobody will ever know or prove anything, right? Well maybe not, until now.
+
+I'm an old-school engineer which means I have written my share of FFTs and DCTs by hand, in languages and for platforms nobody cares about any more. For this app I just spent a nice free morning with an AI agent which let me build it in straight no-dependency javascript. It's small, simple, and not quite vibe-coded, but pretty close. And if it helps either of my kids find out which mouth breather is playing that stupid annoying sound then it's been worth it.
+
+The code and app are released free under the MIT license. Go get 'em.
+
+*Dedicated to my kids — Love you <3*
 
 ## Privacy
 
@@ -54,6 +68,6 @@ BuzzOff does not record or store audio. It only analyzes the live frequency spec
 
 ## Technology
 
-BuzzOff is a standalone browser app with no backend and no build step. It uses the Web Audio API to run an 8192-point FFT (≈5.4 Hz/bin resolution) entirely client-side. It is packaged as a PWA so it can be installed to a home screen or desktop. Theming (light, dark, etc) is handled entirely in CSS custom properties. All settings persist locally via localStorage.
+BuzzOff is a standalone browser app with no backend and no build step. It uses the Web Audio API to run a configurable FFT (1024, 2048, or 4096 points — ≈43, 21.5, or 10.8 Hz/bin resolution) entirely client-side. It is packaged as a PWA so it can be installed to a home screen or desktop. Theming (light, dark, etc) is handled entirely in CSS custom properties. All settings persist locally via localStorage.
 
 For local dev, sync the repo locally and open `index.html` in the browser.

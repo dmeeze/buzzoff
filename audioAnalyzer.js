@@ -18,6 +18,7 @@ const audioAnalyzer = {
 
     // Band config
     band: { min: 14000, max: 20000 },
+    fftSize: 4096,
 
     // Detection
     threshold: 54,              // 0-255 raw FFT amplitude
@@ -56,11 +57,27 @@ const audioAnalyzer = {
             default:      return '#161b22';
         }
     },
+    // Returns the canvas background as [r, g, b] for pre-mixing
+    _bgRgb() {
+        switch (this._theme) {
+            case 'light': return [245, 247, 250];
+            case '80s':   return [8, 0, 26];
+            default:      return [22, 27, 34];
+        }
+    },
+    // Alpha-composite [r,g,b] at `alpha` over the canvas background — returns solid rgb() string
+    _mix(r, g, b, alpha) {
+        const [br, bg, bb] = this._bgRgb();
+        const ri = Math.round(alpha * r + (1 - alpha) * br);
+        const gi = Math.round(alpha * g + (1 - alpha) * bg);
+        const bi = Math.round(alpha * b + (1 - alpha) * bb);
+        return `rgb(${ri},${gi},${bi})`;
+    },
     _a(alpha) {
         switch (this._theme) {
-            case 'light': return `rgba(0,0,0,${alpha})`;
-            case '80s':   return `rgba(230,180,255,${alpha})`;
-            default:      return `rgba(255,255,255,${alpha})`;
+            case 'light': return this._mix(0, 0, 0, alpha);
+            case '80s':   return this._mix(230, 180, 255, alpha);
+            default:      return this._mix(255, 255, 255, alpha);
         }
     },
     _oobBar(v) {
@@ -73,9 +90,9 @@ const audioAnalyzer = {
     },
     _subThreshBar(t) {
         switch (this._theme) {
-            case 'light': return `rgba(30, 100, 200, ${t * 0.35})`;
-            case '80s':   return `rgba(160, 0, 255, ${t * 0.45})`;
-            default:      return `rgba(88, 166, 255, ${t * 0.25})`;
+            case 'light': return this._mix(30, 100, 200, t * 0.35);
+            case '80s':   return this._mix(160, 0, 255, t * 0.45);
+            default:      return this._mix(88, 166, 255, t * 0.25);
         }
     },
     _inBandBar(t) {
@@ -92,14 +109,14 @@ const audioAnalyzer = {
     },
     _bandColor(alpha = 1) {
         switch (this._theme) {
-            case '80s': return `rgba(0, 229, 255, ${alpha})`;
-            default:    return `rgba(248, 81, 73, ${alpha})`;
+            case '80s': return this._mix(0, 229, 255, alpha);
+            default:    return this._mix(248, 81, 73, alpha);
         }
     },
     _threshColor() {
         switch (this._theme) {
-            case '80s': return 'rgba(255, 0, 144, 0.7)';
-            default:    return 'rgba(248, 81, 73, 0.6)';
+            case '80s': return this._mix(255, 0, 144, 0.7);
+            default:    return this._mix(248, 81, 73, 0.6);
         }
     },
 
@@ -122,7 +139,7 @@ const audioAnalyzer = {
 
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.analyser     = this.audioContext.createAnalyser();
-        this.analyser.fftSize = 4096;
+        this.analyser.fftSize = this.fftSize;
         this.bufferLength = this.analyser.frequencyBinCount;
         this.dataArray    = new Uint8Array(this.bufferLength);
 
@@ -190,6 +207,15 @@ const audioAnalyzer = {
 
     setNoiseFloor(enabled) {
         this.noiseFloor = enabled;
+    },
+
+    setFftSize(size) {
+        this.fftSize = size;
+        if (this.analyser) {
+            this.analyser.fftSize = size;
+            this.bufferLength = this.analyser.frequencyBinCount;
+            this.dataArray = new Uint8Array(this.bufferLength);
+        }
     },
 
     // ── Canvas init ────────────────────────────────────

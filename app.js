@@ -4,7 +4,8 @@
 const TIPS = {
     frequencyBand:    'The range of frequencies to listen for. Annoy covers common deterrent tones, Mosquito targets ultrasonic repellers, or set a Custom range.',
     sensitivity:      'How strong a signal must be to trigger detection. Low = fewer false positives. High = catches weaker tones.',
-    filterWhiteNoise: 'Ignores broadband noise (white noise, fans, fabric rustling) so only distinct, narrow-band tones trigger an alert. Turn off if missing detections in a quiet environment.',
+    filterWhiteNoise: 'Ignores broadband noise (<a href="https://en.wikipedia.org/wiki/White_noise" target="_blank" rel="noopener">white noise</a>, fans, fabric rustling) so only distinct, narrow-band tones trigger an alert. Turn off if you\'re missing real detections in a quiet environment.',
+    spectrumDetail:   'Controls how many frequency bins are analyzed each frame. Low (1024) is easiest on the CPU and recommended for older or mobile devices. High (4096) gives the finest resolution but costs more.',
     whenDetected:     'Actions to take when a tone is detected. Notify sends a browser notification, Beep plays an audible alert, Tab title updates the page title, Flash blinks the display.',
     theme:            'Color scheme. Auto follows your system preference.',
 };
@@ -24,7 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusText     = document.getElementById('status-text');
     const statusSubtext  = document.getElementById('status-subtext');
     const sensTabs          = document.querySelectorAll('.sens-tab');
-    const noiseFloorTabs = document.querySelectorAll('.noise-floor-tab');
+    const noiseFloorTabs    = document.querySelectorAll('.noise-floor-tab');
+    const fftDetailTabs     = document.querySelectorAll('.fft-detail-tab');
     const notifyToggle   = document.getElementById('notify-toggle');
     const beepToggle     = document.getElementById('beep-toggle');
     const tabTitleToggle = document.getElementById('tab-title-toggle');
@@ -59,7 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('opt_bandMin', bandMinInput.value);
         localStorage.setItem('opt_bandMax', bandMaxInput.value);
         localStorage.setItem('opt_sens',    activeSens ? activeSens.dataset.value : 'med');
-        localStorage.setItem('opt_noiseFloor', String(noiseFloorEnabled));
+        localStorage.setItem('opt_noiseFloor',  String(noiseFloorEnabled));
+        const activeFftDetail = [...fftDetailTabs].find(t => t.classList.contains('active'));
+        localStorage.setItem('opt_fftDetail',   activeFftDetail ? activeFftDetail.dataset.value : 'high');
         localStorage.setItem('opt_beep',      String(beepEnabled));
         localStorage.setItem('opt_notify',    String(notifyEnabled));
         localStorage.setItem('opt_tabTitle',  String(tabTitleEnabled));
@@ -71,7 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedBandMin = localStorage.getItem('opt_bandMin');
         const savedBandMax = localStorage.getItem('opt_bandMax');
         const savedSens    = localStorage.getItem('opt_sens');
-        const savedNoiseFloor = localStorage.getItem('opt_noiseFloor');
+        const savedNoiseFloor  = localStorage.getItem('opt_noiseFloor');
+        const savedFftDetail   = localStorage.getItem('opt_fftDetail');
         const savedBeep      = localStorage.getItem('opt_beep');
         const savedNotify    = localStorage.getItem('opt_notify');
         const savedTabTitle  = localStorage.getItem('opt_tabTitle');
@@ -90,6 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
             noiseFloorEnabled = false;
             audioAnalyzer.setNoiseFloor(false);
             noiseFloorTabs.forEach(t => t.classList.toggle('active', t.dataset.value === 'off'));
+        }
+
+        if (savedFftDetail && FFT_DETAIL_SIZES[savedFftDetail] !== undefined) {
+            fftDetailTabs.forEach(t => t.classList.toggle('active', t.dataset.value === savedFftDetail));
+            audioAnalyzer.setFftSize(FFT_DETAIL_SIZES[savedFftDetail]);
         }
 
         if (savedBeep === 'true') {
@@ -154,6 +164,13 @@ document.addEventListener('DOMContentLoaded', () => {
     bindDialog(helpBtn,    helpDialog,    helpClose);
 
     // ── Help tips — populate text and wire up mobile tap ─────────────────────
+
+    // Populate any help-body element that references a TIPS key
+    document.querySelectorAll('.help-body [data-tip-key]').forEach(el => {
+        const key = el.dataset.tipKey;
+        if (key && TIPS[key]) el.innerHTML = TIPS[key];
+    });
+
     document.querySelectorAll('.help-tip').forEach(tip => {
         const key = tip.dataset.tipKey;
         if (key && TIPS[key]) {
@@ -245,7 +262,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Sensitivity tabs ──────────────────────────────
 
-    const SENS_VALUES = { low: 20, med: 60, high: 85 };
+    const SENS_VALUES       = { low: 20, med: 60, high: 85 };
+    const FFT_DETAIL_SIZES  = { low: 1024, med: 2048, high: 4096 };
 
     sensTabs.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -294,6 +312,15 @@ document.addEventListener('DOMContentLoaded', () => {
             noiseFloorEnabled = btn.dataset.value === 'on';
             noiseFloorTabs.forEach(t => t.classList.toggle('active', t === btn));
             audioAnalyzer.setNoiseFloor(noiseFloorEnabled);
+            saveOptions();
+        });
+    });
+
+    fftDetailTabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+            fftDetailTabs.forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            audioAnalyzer.setFftSize(FFT_DETAIL_SIZES[btn.dataset.value]);
             saveOptions();
         });
     });

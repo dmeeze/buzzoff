@@ -464,21 +464,10 @@ html, body {
     gap: 0.75rem;
 }
 
-.control-groups {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-}
-
 .control-group {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-}
-
-.control-group-right {
-    align-items: flex-end;
 }
 
 .control-group-label {
@@ -545,19 +534,19 @@ html, body {
     display: block;
 }
 
-/* ── Mode tabs (inside controls) ─────────────────── */
+/* ── Option tabs (inside options dialog) ──────────── */
 
-.mode-tabs, .sens-tabs {
+.option-tabs {
     display: flex;
     gap: 0.25rem;
     background: var(--bg3);
     padding: 3px;
     border-radius: 8px;
+    width: fit-content;
 }
 
-.mode-tabs { width: fit-content; }
-
-.tab, .sens-tab {
+.option-tab {
+    padding: 0.3rem 0.75rem;
     border: none;
     border-radius: 6px;
     font-size: 0.8rem;
@@ -568,10 +557,7 @@ html, body {
     transition: all 0.15s;
 }
 
-.tab        { padding: 0.3rem 0.75rem; }
-.sens-tab   { padding: 0.3rem 0.6rem; }
-
-.tab.active, .sens-tab.active {
+.option-tab.active {
     background: var(--bg);
     color: var(--accent);
     box-shadow: 0 1px 4px var(--shadow);
@@ -793,6 +779,10 @@ html, body {
 
 .help-body p {
     color: var(--text);
+}
+
+.help-body a {
+    color: var(--accent);
 }
 
 .help-body ul {

@@ -81,37 +81,45 @@
                 <button id="options-close" class="icon-btn">✕</button>
             </div>
             <div class="options-body">
-                <!-- Frequency Band + Sensitivity -->
-                <div class="control-groups">
-                    <div class="control-group">
-                        <span class="control-group-label">Frequency Band <span class="help-tip" tabindex="0" data-tip-key="frequencyBand">?<span class="help-tip-text"></span></span></span>
-                        <div class="mode-tabs">
-                            <button id="annoy-tab" class="tab active">Annoy</button>
-                            <button id="mosquito-tab" class="tab">Mosquito</button>
-                            <button id="custom-tab" class="tab">Custom</button>
-                        </div>
-                        <div id="custom-band-row" class="custom-band-inputs hidden">
-                            <input type="number" id="band-min" value="16000" min="100" max="22000" step="100" class="freq-input">
-                            <span class="hz-label">–</span>
-                            <input type="number" id="band-max" value="18500" min="100" max="22000" step="100" class="freq-input">
-                            <span class="hz-label">Hz</span>
-                        </div>
+                <!-- Frequency Band -->
+                <div class="control-group">
+                    <span class="control-group-label">Frequency Band <span class="help-tip" tabindex="0" data-tip-key="frequencyBand">?<span class="help-tip-text"></span></span></span>
+                    <div class="option-tabs">
+                        <button id="annoy-tab" class="option-tab active">Annoy</button>
+                        <button id="mosquito-tab" class="option-tab">Mosquito</button>
+                        <button id="custom-tab" class="option-tab">Custom</button>
                     </div>
-                    <div class="control-group control-group-right">
-                        <span class="control-group-label">Sensitivity <span class="help-tip" tabindex="0" data-tip-key="sensitivity">?<span class="help-tip-text"></span></span></span>
-                        <div class="sens-tabs">
-                            <button class="sens-tab" data-value="low">Low</button>
-                            <button class="sens-tab active" data-value="med">Med</button>
-                            <button class="sens-tab" data-value="high">High</button>
-                        </div>
+                    <div id="custom-band-row" class="custom-band-inputs hidden">
+                        <input type="number" id="band-min" value="16000" min="100" max="22000" step="100" class="freq-input">
+                        <span class="hz-label">–</span>
+                        <input type="number" id="band-max" value="18500" min="100" max="22000" step="100" class="freq-input">
+                        <span class="hz-label">Hz</span>
+                    </div>
+                </div>
+                <!-- Sensitivity -->
+                <div class="control-group">
+                    <span class="control-group-label">Sensitivity <span class="help-tip" tabindex="0" data-tip-key="sensitivity">?<span class="help-tip-text"></span></span></span>
+                    <div class="option-tabs">
+                        <button class="sens-tab option-tab" data-value="low">Low</button>
+                        <button class="sens-tab option-tab active" data-value="med">Med</button>
+                        <button class="sens-tab option-tab" data-value="high">High</button>
                     </div>
                 </div>
                 <!-- Detection -->
                 <div class="control-group">
                     <span class="control-group-label">Filter white noise <span class="help-tip" tabindex="0" data-tip-key="filterWhiteNoise">?<span class="help-tip-text"></span></span></span>
-                    <div class="sens-tabs">
-                        <button class="noise-floor-tab sens-tab active" data-value="on">On</button>
-                        <button class="noise-floor-tab sens-tab" data-value="off">Off</button>
+                    <div class="option-tabs">
+                        <button class="noise-floor-tab option-tab active" data-value="on">On</button>
+                        <button class="noise-floor-tab option-tab" data-value="off">Off</button>
+                    </div>
+                </div>
+                <!-- Spectrum detail -->
+                <div class="control-group">
+                    <span class="control-group-label">Spectrum detail <span class="help-tip" tabindex="0" data-tip-key="spectrumDetail">?<span class="help-tip-text"></span></span></span>
+                    <div class="option-tabs">
+                        <button class="fft-detail-tab option-tab" data-value="low">Low</button>
+                        <button class="fft-detail-tab option-tab" data-value="med">Med</button>
+                        <button class="fft-detail-tab option-tab active" data-value="high">High</button>
                     </div>
                 </div>
                 <!-- When detected -->
@@ -127,11 +135,11 @@
                 <!-- Theme -->
                 <div class="control-group">
                     <span class="control-group-label">Theme <span class="help-tip" tabindex="0" data-tip-key="theme">?<span class="help-tip-text"></span></span></span>
-                    <div class="mode-tabs">
-                        <button class="theme-tab tab" data-theme="light">Light</button>
-                        <button class="theme-tab tab" data-theme="dark">Dark</button>
-                        <button class="theme-tab tab" data-theme="80s">80s</button>
-                        <button class="theme-tab tab active" data-theme="auto">Auto</button>
+                    <div class="option-tabs">
+                        <button class="theme-tab option-tab" data-theme="light">Light</button>
+                        <button class="theme-tab option-tab" data-theme="dark">Dark</button>
+                        <button class="theme-tab option-tab" data-theme="80s">80s</button>
+                        <button class="theme-tab option-tab active" data-theme="auto">Auto</button>
                     </div>
                 </div>
             </div>
@@ -146,37 +154,66 @@
                 <button id="help-close" class="icon-btn">✕</button>
             </div>
             <div class="help-body">
-                <p>BuzzOff listens for high-frequency tones used as mosquito repellents, "teen deterrents," or other annoying sound devices and alerts you when one is detected.</p>
+                <p>BuzzOff listens for high-frequency tones used as <a href="https://en.wikipedia.org/wiki/The_Mosquito" target="_blank" rel="noopener">mosquito repellents, "teen deterrents,"</a> or other annoying sound devices and alerts you when one is detected.</p>
 
                 <p class="privacy-note">NOTE : BuzzOff <strong>does not record or store any audio</strong>. It only analyzes the live frequency spectrum in real time, entirely within your browser. No audio or data ever leaves your device.</p>
-
-                <h3>How it works</h3>
-                <p>BuzzOff uses your computer's microphone to capture audio, then analyzes the frequency spectrum in real time looking for energy in the target band. It can only hear what your microphone can hear — so physical distance, walls, and your hardware's frequency response all affect results.</p>
-                <p>If your computer has more than one microphone or audio input (e.g. built-in mic, USB interface, headset), you need to select the right one in your <strong>system sound settings</strong> — BuzzOff uses whichever input your system has set as the default. There is no way to choose the input device from within this page.</p>
 
                 <h3>Modes</h3>
                 <ul>
                     <li><strong>Annoy</strong> — Scans 14 .. 20 kHz, the broad range used by deterrent devices</li>
-                    <li><strong>Mosquito</strong> — Focused on 16 .. 18.5 kHz, the classic "mosquito tone"</li>
+                    <li><strong>Mosquito</strong> — Focused on 16 .. 18.5 kHz, the classic <a href="https://en.wikipedia.org/wiki/The_Mosquito" target="_blank" rel="noopener">"mosquito tone"</a></li>
                     <li><strong>Custom</strong> — Set your own frequency range</li>
                 </ul>
-
-                <h3>Sensitivity &amp; filter white noise</h3>
-                <p>Higher sensitivity triggers on weaker signals but may produce more false positives. Lower sensitivity requires a stronger signal to trigger.</p>
-                <p><strong>Filter white noise</strong> filters out broadband noise (white noise, fans, fabric rustling) that happens to have sound in the target frequency range.
-                    When enabled, a signal must stand out as a spike from the surrounding spectrum to count as a detection.
-                    Turn it off if you're missing real detections in a quiet environment.</p>
-
-                <h3>Background tabs</h3>
-                <p>Browsers throttle background tabs to save resources. When BuzzOff is not the active tab, detection may be delayed or missed. For best accuracy, keep the BuzzOff window visible on screen — even in a small window or a second monitor.</p>
-                <p>Tab title and screen flash alerts are most reliable when the tab is visible. Browser notifications work independently and are not affected by throttling.</p>
 
                 <h3>Alerts</h3>
                 <ul>
                     <li><strong>Notify</strong> — Sends a browser notification when a tone is detected. Useful when running in a background tab</li>
-                    <li><strong>Beep</strong> — Plays an audible 880 Hz tone when detection starts</li>
+                    <li><strong>Beep</strong> — Plays a short audible beep tone (880 Hz, a pleasant A5 note) when detection starts</li>
                     <li><strong>Tab title</strong> — Changes the browser tab title to "⚠ DETECTED" so you can spot it at a glance without looking at the page. On by default</li>
                     <li><strong>Flash</strong> — Briefly flashes the screen red on detection</li>
+                </ul>
+
+                <h3>Sensitivity</h3>
+                <p data-tip-key="sensitivity"></p>
+
+                <h3>Filter white noise</h3>
+                <p data-tip-key="filterWhiteNoise"></p>
+
+                <h3>Spectrum detail</h3>
+                <p data-tip-key="spectrumDetail"></p>
+
+                <h3>Note on Background tabs and Mobile</h3>
+                <p>Every browser is a bit different.  Phones are different to computers for a lot of reasons, and the people who make them use a lot of tricks to not use up your battery on stuff you're not using right now.  
+                Browsers throttle background tabs to save resources. When BuzzOff is not the active tab, detection may be delayed or missed. For best accuracy, keep the BuzzOff window visible on screen — even in a 
+                small window or a second monitor. This page/app will work best in a real computer, but it has been built to work ok on a phone too.
+                But if the page isn't on your screen it might not keep working properly for you.  Sorry, I don't make the phone.</p>
+
+                <h3>How it works</h3>
+                <p>BuzzOff uses your computer's microphone to capture audio, then analyzes the <a href="https://en.wikipedia.org/wiki/Frequency_spectrum" target="_blank" rel="noopener">frequency spectrum</a> in real time looking for energy in the target band. It can only hear what your microphone can hear — so physical distance, walls, and your hardware's frequency response all affect results.</p>
+                <p>If your computer has more than one microphone or audio input (e.g. built-in mic, USB interface, headset), you need to select the right one in your <strong>system sound settings</strong> — BuzzOff uses whichever input your system has set as the default. It might even be using your headphones, the page can't know that.</p>
+
+                <h3>Why and How I wrote this</h3>
+                <p>Some jokers at school think it's hilarious to play the high-pitched "mosquito" tones to annoy the other kids in 
+                class with pure plausible deniability.  The teacher can't hear the tone, so nobody will ever know or prove anything, 
+                right?  Well maybe not, until now.</p>
+
+                <p>For those wondering, I'm an old-school engineer which means I have written my share of <a href="https://en.wikipedia.org/wiki/Fast_Fourier_transform" target="_blank" rel="noopener">FFTs</a> and <a href="https://en.wikipedia.org/wiki/Discrete_cosine_transform" target="_blank" rel="noopener">DCTs</a> by hand, 
+                in languages and for platforms nobody cares about any more.  For this app I just spent a nice free morning with 
+                an AI agent which let me build it in straight no-dependency javascript.  It's small, simple, and not quite 
+                vibe-coded, but pretty close.  And if it helps either of my kids find out which mouth breather is playing that 
+                stupid annoying sound then it's been worth it.</p>
+
+                <p>The code and app are released <a href="https://github.com/dmeeze/buzzoff">free into the world</a> under MIT license meaning you can go forth and use it
+                to find annoying sounds wherever they lurk.  Go get 'em.</p>
+
+                <p>Dedicated to my kids - Love you &lt;3</p>
+
+                <h3>Installing as an app</h3>
+                <p>BuzzOff can be added to your home screen or desktop so it opens like a regular app:</p>
+                <ul>
+                    <li><strong>iPhone/iPad:</strong> tap the Share button in Safari, then <em>Add to Home Screen</em>.</li>
+                    <li><strong>Android (Chrome):</strong> tap the three-dot menu, then <em>Add to Home Screen</em> or <em>Install app</em>.</li>
+                    <li><strong>Chromebook / Chrome desktop:</strong> look for the install icon in the address bar, or use the three-dot menu → <em>Install BuzzOff</em>.</li>
                 </ul>
 
             </div>
