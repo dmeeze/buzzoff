@@ -185,6 +185,8 @@ html, body {
     gap: 0.65rem;
     align-self: stretch;
     padding: 5px 0;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .brand-icon {
@@ -250,6 +252,7 @@ html, body {
     font-size: 0.75rem;
     color: var(--text-muted);
     font-weight: 400;
+    white-space: nowrap;
 }
 
 /* ── Icon buttons (theme toggle, help, dialog close) */
