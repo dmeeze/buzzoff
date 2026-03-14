@@ -172,6 +172,7 @@ html, body {
     justify-content: space-between;
     padding: 0 0 0 1rem;
     gap: 1rem;
+    height: 60px;
     background: var(--bg3);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
@@ -179,10 +180,37 @@ html, body {
 
 .header-brand {
     display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    align-self: center;
-    padding: 0.75rem 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.65rem;
+    align-self: stretch;
+    padding: 5px 0;
+}
+
+.brand-icon {
+    height: 100%;
+    width: auto;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    border-radius: 8px;
+}
+
+/* Default (dark): show dark icon only */
+.brand-icon-light,
+.brand-icon-80s  { display: none; }
+
+/* Light theme */
+:root[data-theme="light"] .brand-icon-dark  { display: none; }
+:root[data-theme="light"] .brand-icon-light { display: block; }
+
+/* 80s theme */
+:root[data-theme="80s"] .brand-icon-dark { display: none; }
+:root[data-theme="80s"] .brand-icon-80s  { display: block; }
+
+/* Auto theme — follow system preference */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]):not([data-theme="80s"]) .brand-icon-dark  { display: none; }
+    :root:not([data-theme="dark"]):not([data-theme="80s"]) .brand-icon-light { display: block; }
 }
 
 .header-actions {
@@ -197,11 +225,11 @@ html, body {
     border-left: 1px solid var(--border);
     border-radius: 0;
     background: transparent;
-    font-size: 1.6rem;
+    font-size: 2rem;
     min-width: 60px;
     height: auto;
     color: var(--text-muted);
-    padding: 0;
+    padding: 5px;
 }
 
 .header-actions .icon-btn:hover {
@@ -455,6 +483,63 @@ html, body {
     font-weight: 500;
     color: var(--text-muted);
     letter-spacing: 0.02em;
+}
+
+/* ── Help tips ───────────────────────────────────── */
+
+.help-tip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1em;
+    height: 1.1em;
+    border-radius: 50%;
+    background: var(--bg3);
+    color: var(--text-muted);
+    font-size: 0.6rem;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    vertical-align: middle;
+    margin-left: 0.2em;
+    border: 1px solid var(--border);
+    outline: none;
+}
+
+.help-tip:hover,
+.help-tip:focus,
+.help-tip.open {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.help-tip-text {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: 0;
+    line-height: 1.4;
+    white-space: normal;
+    box-shadow: 0 2px 10px var(--shadow);
+    z-index: 200;
+    pointer-events: none;
+}
+
+.help-tip:hover .help-tip-text,
+.help-tip:focus .help-tip-text,
+.help-tip.open .help-tip-text {
+    display: block;
 }
 
 /* ── Mode tabs (inside controls) ─────────────────── */

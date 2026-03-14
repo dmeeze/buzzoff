@@ -15,8 +15,13 @@
         <!-- Header -->
         <header class="header">
             <div class="header-brand">
-                <h1 class="app-title">BuzzOff</h1>
-                <p class="app-subtitle">Detect annoying sounds</p>
+                <img class="brand-icon brand-icon-dark" src="icon-dark.svg" alt="" aria-hidden="true">
+                <img class="brand-icon brand-icon-light" src="icon-light.svg" alt="" aria-hidden="true">
+                <img class="brand-icon brand-icon-80s" src="icon-80s.svg" alt="" aria-hidden="true">
+                <div>
+                    <h1 class="app-title">BuzzOff</h1>
+                    <p class="app-subtitle">Detect annoying sounds</p>
+                </div>
             </div>
             <div class="header-actions">
                 <button id="options-btn" class="icon-btn" title="Options">⚙</button>
@@ -79,7 +84,7 @@
                 <!-- Frequency Band + Sensitivity -->
                 <div class="control-groups">
                     <div class="control-group">
-                        <span class="control-group-label">Frequency Band</span>
+                        <span class="control-group-label">Frequency Band <span class="help-tip" tabindex="0" data-tip-key="frequencyBand">?<span class="help-tip-text"></span></span></span>
                         <div class="mode-tabs">
                             <button id="annoy-tab" class="tab active">Annoy</button>
                             <button id="mosquito-tab" class="tab">Mosquito</button>
@@ -93,7 +98,7 @@
                         </div>
                     </div>
                     <div class="control-group control-group-right">
-                        <span class="control-group-label">Sensitivity</span>
+                        <span class="control-group-label">Sensitivity <span class="help-tip" tabindex="0" data-tip-key="sensitivity">?<span class="help-tip-text"></span></span></span>
                         <div class="sens-tabs">
                             <button class="sens-tab" data-value="low">Low</button>
                             <button class="sens-tab active" data-value="med">Med</button>
@@ -103,14 +108,15 @@
                 </div>
                 <!-- Detection -->
                 <div class="control-group">
-                    <span class="control-group-label">Detection</span>
-                    <div class="alerts-row">
-                        <button id="noise-floor-toggle" class="toggle-btn" data-active="true">Noise floor</button>
+                    <span class="control-group-label">Filter white noise <span class="help-tip" tabindex="0" data-tip-key="filterWhiteNoise">?<span class="help-tip-text"></span></span></span>
+                    <div class="sens-tabs">
+                        <button class="noise-floor-tab sens-tab active" data-value="on">On</button>
+                        <button class="noise-floor-tab sens-tab" data-value="off">Off</button>
                     </div>
                 </div>
                 <!-- When detected -->
                 <div class="control-group">
-                    <span class="control-group-label">When detected</span>
+                    <span class="control-group-label">When detected <span class="help-tip" tabindex="0" data-tip-key="whenDetected">?<span class="help-tip-text"></span></span></span>
                     <div class="alerts-row">
                         <button id="notify-toggle" class="toggle-btn" data-active="false">Notify</button>
                         <button id="beep-toggle" class="toggle-btn" data-active="false">Beep</button>
@@ -120,7 +126,7 @@
                 </div>
                 <!-- Theme -->
                 <div class="control-group">
-                    <span class="control-group-label">Theme</span>
+                    <span class="control-group-label">Theme <span class="help-tip" tabindex="0" data-tip-key="theme">?<span class="help-tip-text"></span></span></span>
                     <div class="mode-tabs">
                         <button class="theme-tab tab" data-theme="light">Light</button>
                         <button class="theme-tab tab" data-theme="dark">Dark</button>
@@ -155,10 +161,10 @@
                     <li><strong>Custom</strong> — Set your own frequency range</li>
                 </ul>
 
-                <h3>Sensitivity &amp; noise floor</h3>
+                <h3>Sensitivity &amp; filter white noise</h3>
                 <p>Higher sensitivity triggers on weaker signals but may produce more false positives. Lower sensitivity requires a stronger signal to trigger.</p>
-                <p><strong>Noise floor</strong> filters out broadband noise (white noise, fans, fabric rustling) that happens to have sound in the target frequency range. 
-                    When enabled, a signal must stand out as a spike from the surrounding spectrum to count as a detection. 
+                <p><strong>Filter white noise</strong> filters out broadband noise (white noise, fans, fabric rustling) that happens to have sound in the target frequency range.
+                    When enabled, a signal must stand out as a spike from the surrounding spectrum to count as a detection.
                     Turn it off if you're missing real detections in a quiet environment.</p>
 
                 <h3>Background tabs</h3>

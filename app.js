@@ -1,5 +1,14 @@
 // BuzzOff — App controller
 
+// ── Control help text (single source of truth for tooltips) ──────────────────
+const TIPS = {
+    frequencyBand:    'The range of frequencies to listen for. Annoy covers common deterrent tones, Mosquito targets ultrasonic repellers, or set a Custom range.',
+    sensitivity:      'How strong a signal must be to trigger detection. Low = fewer false positives. High = catches weaker tones.',
+    filterWhiteNoise: 'Ignores broadband noise (white noise, fans, fabric rustling) so only distinct, narrow-band tones trigger an alert. Turn off if missing detections in a quiet environment.',
+    whenDetected:     'Actions to take when a tone is detected. Notify sends a browser notification, Beep plays an audible alert, Tab title updates the page title, Flash blinks the display.',
+    theme:            'Color scheme. Auto follows your system preference.',
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // ── Elements ─────────────────────────────────────
@@ -15,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusText     = document.getElementById('status-text');
     const statusSubtext  = document.getElementById('status-subtext');
     const sensTabs          = document.querySelectorAll('.sens-tab');
-    const noiseFloorToggle = document.getElementById('noise-floor-toggle');
+    const noiseFloorTabs = document.querySelectorAll('.noise-floor-tab');
     const notifyToggle   = document.getElementById('notify-toggle');
     const beepToggle     = document.getElementById('beep-toggle');
     const tabTitleToggle = document.getElementById('tab-title-toggle');
@@ -79,8 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (savedNoiseFloor === 'false') {
             noiseFloorEnabled = false;
-            setToggle(noiseFloorToggle, false);
             audioAnalyzer.setNoiseFloor(false);
+            noiseFloorTabs.forEach(t => t.classList.toggle('active', t.dataset.value === 'off'));
         }
 
         if (savedBeep === 'true') {
@@ -143,6 +152,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bindDialog(optionsBtn, optionsDialog, optionsClose);
     bindDialog(helpBtn,    helpDialog,    helpClose);
+
+    // ── Help tips — populate text and wire up mobile tap ─────────────────────
+    document.querySelectorAll('.help-tip').forEach(tip => {
+        const key = tip.dataset.tipKey;
+        if (key && TIPS[key]) {
+            tip.querySelector('.help-tip-text').textContent = TIPS[key];
+            tip.setAttribute('aria-label', tip.closest('.control-group-label')
+                ?.firstChild?.textContent?.trim() + ' help');
+        }
+        tip.addEventListener('click', e => {
+            e.stopPropagation();
+            const isOpen = tip.classList.contains('open');
+            document.querySelectorAll('.help-tip.open').forEach(t => t.classList.remove('open'));
+            if (!isOpen) tip.classList.add('open');
+        });
+    });
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.help-tip.open').forEach(t => t.classList.remove('open'));
+    });
 
     // ── Start / Stop ──────────────────────────────────
 
@@ -261,11 +289,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    noiseFloorToggle.addEventListener('click', () => {
-        noiseFloorEnabled = !noiseFloorEnabled;
-        setToggle(noiseFloorToggle, noiseFloorEnabled);
-        audioAnalyzer.setNoiseFloor(noiseFloorEnabled);
-        saveOptions();
+    noiseFloorTabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+            noiseFloorEnabled = btn.dataset.value === 'on';
+            noiseFloorTabs.forEach(t => t.classList.toggle('active', t === btn));
+            audioAnalyzer.setNoiseFloor(noiseFloorEnabled);
+            saveOptions();
+        });
     });
 
     beepToggle.addEventListener('click', () => {
