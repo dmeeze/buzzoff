@@ -84,26 +84,26 @@ const audioAnalyzer = {
         const pct = v / 255;
         switch (this._theme) {
             case 'light': return `hsl(210,80%,${50 - pct * 25}%)`;
-            case '80s':   return `hsl(270,80%,${12 + pct * 28}%)`;
+            case '80s':   return `hsl(270,90%,${28 + pct * 42}%)`;
             default:      return `hsl(210,100%,${30 + pct * 55}%)`;
         }
     },
     _subThreshBar(t) {
         switch (this._theme) {
             case 'light': return this._mix(30, 100, 200, t * 0.35);
-            case '80s':   return this._mix(160, 0, 255, t * 0.45);
+            case '80s':   return this._mix(160, 0, 255, t * 0.72);
             default:      return this._mix(88, 166, 255, t * 0.25);
         }
     },
     _inBandBar(t) {
         switch (this._theme) {
-            case '80s': return `hsl(${300 - t * 60}, 100%, ${40 + t * 35}%)`;
+            case '80s': return `hsl(${300 - t * 60}, 100%, ${55 + t * 30}%)`;
             default:    return `hsl(${5 + t * 25}, 100%, ${55 + t * 40}%)`;
         }
     },
     _detectedBar(t) {
         switch (this._theme) {
-            case '80s': return `hsl(320, 100%, ${28 + t * 42}%)`;
+            case '80s': return `hsl(320, 100%, ${42 + t * 42}%)`;
             default:    return `hsl(4, 85%, ${28 + t * 42}%)`;
         }
     },
