@@ -179,8 +179,9 @@ const audioAnalyzer = {
 
         const clearCanvas = (canvas, ctx) => {
             if (ctx) {
-                const w = canvas.getBoundingClientRect().width;
-                const h = canvas.getBoundingClientRect().height;
+                const dpr = window.devicePixelRatio || 1;
+                const w = canvas.width / dpr;
+                const h = canvas.height / dpr;
                 ctx.fillStyle = this._bg();
                 ctx.fillRect(0, 0, w, h);
             }
@@ -222,9 +223,13 @@ const audioAnalyzer = {
 
     _initCanvas(canvas) {
         const dpr  = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        canvas.width  = Math.round(rect.width  * dpr);
-        canvas.height = Math.round(rect.height * dpr);
+        // Use parentElement.clientWidth for reliable sizing on iOS Safari —
+        // getBoundingClientRect() can return stale/zero values before layout settles.
+        const parent = canvas.parentElement;
+        const w = (parent ? parent.clientWidth : 0) || canvas.getBoundingClientRect().width || 300;
+        const h = canvas.getBoundingClientRect().height || canvas.offsetHeight || 200;
+        canvas.width  = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
         const ctx = canvas.getContext('2d');
         ctx.scale(dpr, dpr);
         return ctx;
@@ -347,8 +352,9 @@ const audioAnalyzer = {
     _drawFFT() {
         const canvas = this.fftCanvas;
         const ctx    = this.fftCtx;
-        const W = canvas.getBoundingClientRect().width;
-        const H = canvas.getBoundingClientRect().height;
+        const dpr = window.devicePixelRatio || 1;
+        const W = canvas.width / dpr;
+        const H = canvas.height / dpr;
 
         ctx.fillStyle = this._bg();
         ctx.fillRect(0, 0, W, H);
@@ -463,8 +469,9 @@ const audioAnalyzer = {
     _drawHistory() {
         const canvas = this.historyCanvas;
         const ctx    = this.historyCtx;
-        const W = canvas.getBoundingClientRect().width;
-        const H = canvas.getBoundingClientRect().height;
+        const dpr = window.devicePixelRatio || 1;
+        const W = canvas.width / dpr;
+        const H = canvas.height / dpr;
 
         ctx.fillStyle = this._bg();
         ctx.fillRect(0, 0, W, H);
