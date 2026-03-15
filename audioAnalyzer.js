@@ -368,7 +368,25 @@ const audioAnalyzer = {
         if (W !== this._lastLoggedFFTW) {
             this._lastLoggedFFTW = W;
             const cssRect = canvas.getBoundingClientRect();
-            this._dbg(`_drawFFT: W=${W} H=${H} canvas.width=${canvas.width} canvas.height=${canvas.height} dpr=${dpr} getBCR=${cssRect.width}x${cssRect.height}`);
+            this._dbg(`_drawFFT: W=${W} H=${H} bitmap=${canvas.width}x${canvas.height} dpr=${dpr} getBCR=${cssRect.width}x${cssRect.height}`);
+        }
+
+        if (!this._freqLogged) {
+            this._freqLogged = true;
+            const _nyq = this.audioContext.sampleRate / 2;
+            const _dMax = Math.min(22000, _nyq);
+            const _bx1 = Math.max(0, ((this.band.min) / _dMax) * W);
+            const _bx2 = Math.min(W, ((this.band.max) / _dMax) * W);
+            this._dbg(`freq: sampleRate=${this.audioContext.sampleRate} nyquist=${_nyq} displayMax=${_dMax} W=${W} bx1=${_bx1.toFixed(1)} bx2=${_bx2.toFixed(1)} band=${this.band.min}-${this.band.max}`);
+            const _ticks = [2,4,6,8,10,12,14,16,18,20,22];
+            const _tickLog = _ticks.map(khz => {
+                const f = khz * 1000;
+                if (f > _dMax) return `${khz}k:>max`;
+                const x = (f / _dMax) * W;
+                const near = Math.abs(x - _bx1) < 18 || Math.abs(x - _bx2) < 18;
+                return `${khz}k:x=${x.toFixed(0)}${near?'[skip]':'[show]'}`;
+            });
+            this._dbg(`ticks: ${_tickLog.join(' ')}`);
         }
 
         ctx.fillStyle = this._bg();
