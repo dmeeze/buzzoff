@@ -16,13 +16,6 @@ const audioAnalyzer = {
     historyCanvas: null,
     historyCtx: null,
 
-    // Debug log
-    debugLogs: [],
-    _dbg(msg) {
-        const ts = new Date().toISOString().slice(11, 23);
-        this.debugLogs.push(`${ts} ${msg}`);
-        if (this.debugLogs.length > 100) this.debugLogs.shift();
-    },
 
     // Band config
     band: { min: 14000, max: 20000 },
@@ -236,7 +229,6 @@ const audioAnalyzer = {
         const parentClientW = parent ? parent.clientWidth : 0;
         const w = parentClientW || rect.width || 300;
         const h = rect.height || canvas.offsetHeight || 200;
-        this._dbg(`_initCanvas ${canvas.id}: dpr=${dpr} rect=${rect.width}x${rect.height} parentClientW=${parentClientW} => ${w}x${h} (bitmap ${Math.round(w*dpr)}x${Math.round(h*dpr)})`);
         canvas.width  = Math.round(w * dpr);
         canvas.height = Math.round(h * dpr);
         const ctx = canvas.getContext('2d');
@@ -364,30 +356,6 @@ const audioAnalyzer = {
         const dpr = window.devicePixelRatio || 1;
         const W = canvas.width / dpr;
         const H = canvas.height / dpr;
-
-        if (W !== this._lastLoggedFFTW) {
-            this._lastLoggedFFTW = W;
-            const cssRect = canvas.getBoundingClientRect();
-            this._dbg(`_drawFFT: W=${W} H=${H} bitmap=${canvas.width}x${canvas.height} dpr=${dpr} getBCR=${cssRect.width}x${cssRect.height}`);
-        }
-
-        if (!this._freqLogged) {
-            this._freqLogged = true;
-            const _nyq = this.audioContext.sampleRate / 2;
-            const _dMax = Math.min(22000, _nyq);
-            const _bx1 = Math.max(0, ((this.band.min) / _dMax) * W);
-            const _bx2 = Math.min(W, ((this.band.max) / _dMax) * W);
-            this._dbg(`freq: sampleRate=${this.audioContext.sampleRate} nyquist=${_nyq} displayMax=${_dMax} W=${W} bx1=${_bx1.toFixed(1)} bx2=${_bx2.toFixed(1)} band=${this.band.min}-${this.band.max}`);
-            const _ticks = [2,4,6,8,10,12,14,16,18,20,22];
-            const _tickLog = _ticks.map(khz => {
-                const f = khz * 1000;
-                if (f > _dMax) return `${khz}k:>max`;
-                const x = (f / _dMax) * W;
-                const near = Math.abs(x - _bx1) < 18 || Math.abs(x - _bx2) < 18;
-                return `${khz}k:x=${x.toFixed(0)}${near?'[skip]':'[show]'}`;
-            });
-            this._dbg(`ticks: ${_tickLog.join(' ')}`);
-        }
 
         ctx.fillStyle = this._bg();
         ctx.fillRect(0, 0, W, H);

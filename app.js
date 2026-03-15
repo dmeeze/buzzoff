@@ -21,9 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const customBandRow  = document.getElementById('custom-band-row');
     const bandMinInput   = document.getElementById('band-min');
     const bandMaxInput   = document.getElementById('band-max');
-    const statusIndicator = document.getElementById('status-indicator');
-    const statusText     = document.getElementById('status-text');
-    const statusSubtext  = document.getElementById('status-subtext');
+    const statusIndicator    = document.getElementById('status-indicator');
+    const statusText         = document.getElementById('status-text');
+    const statusSubtext      = document.getElementById('status-subtext');
     const sensTabs          = document.querySelectorAll('.sens-tab');
     const noiseFloorTabs    = document.querySelectorAll('.noise-floor-tab');
     const fftDetailTabs     = document.querySelectorAll('.fft-detail-tab');
@@ -163,12 +163,11 @@ document.addEventListener('DOMContentLoaded', () => {
     bindDialog(optionsBtn, optionsDialog, optionsClose);
     bindDialog(helpBtn,    helpDialog,    helpClose);
 
-    helpBtn.addEventListener('click', () => {
-        const el = document.getElementById('debug-log');
-        if (el) el.textContent = audioAnalyzer.debugLogs.length
-            ? audioAnalyzer.debugLogs.join('\n')
-            : '(no logs yet)';
-    });
+    const sampleRateInfoDialog = document.getElementById('sample-rate-info-dialog');
+    const sampleRateInfoClose  = document.getElementById('sample-rate-info-close');
+    sampleRateInfoClose.addEventListener('click', () => sampleRateInfoDialog.close());
+    sampleRateInfoDialog.addEventListener('click', e => { if (e.target === sampleRateInfoDialog) sampleRateInfoDialog.close(); });
+
 
     // ── Help tips — populate text and wire up mobile tap ─────────────────────
 
@@ -220,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setStartBtn('■', 'Stop');
                 startStopBtn.classList.add('running');
                 setStatus('clear', 'OK', getSubtext());
+                updateSampleRateWarning();
             } catch (err) {
                 setStatus('idle', 'READY', 'Microphone access denied');
                 console.error(err);
@@ -256,6 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       audioAnalyzer.detectionState === 'detected' ? 'DETECTED' : 'OK',
                       getSubtext());
         }
+        updateSampleRateWarning();
     }
 
     // ── Custom band inputs ────────────────────────────
@@ -398,6 +399,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Status helpers ────────────────────────────────
+
+    function updateSampleRateWarning() {
+        if (!isRunning || !audioAnalyzer.audioContext) return;
+        const nyquist = audioAnalyzer.audioContext.sampleRate / 2;
+        const bandMax = audioAnalyzer.band.max;
+        if (nyquist < bandMax) {
+            const sr     = (audioAnalyzer.audioContext.sampleRate / 1000).toFixed(0);
+            const maxKhz = (nyquist / 1000).toFixed(0);
+            const bandKhz = (bandMax / 1000).toFixed(0);
+            document.getElementById('sample-rate-info-detail').textContent =
+                `Your browser is capturing audio at ${sr} kHz. The Nyquist frequency for this rate is ${maxKhz} kHz, so frequencies above that — including your selected band up to ${bandKhz} kHz — cannot be captured or detected.`;
+            statusSubtext.innerHTML =
+                `<span class="subtext-warn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true" style="width:1em;height:1em;vertical-align:-0.125em;fill:currentColor"><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.2-35.2-19c-7.6-11.8-8-26.5-.8-38.8l216-368C227.5 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg> Reduced accuracy — sample rate too low. <button class="warn-more-btn">learn more</button></span>`;
+            statusSubtext.querySelector('.warn-more-btn')
+                .addEventListener('click', () => sampleRateInfoDialog.showModal());
+        }
+    }
 
     function setStatus(cssState, text, sub) {
         statusIndicator.className = `status-indicator status-${cssState}`;
