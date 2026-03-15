@@ -16,6 +16,14 @@ const audioAnalyzer = {
     historyCanvas: null,
     historyCtx: null,
 
+    // Debug log
+    debugLogs: [],
+    _dbg(msg) {
+        const ts = new Date().toISOString().slice(11, 23);
+        this.debugLogs.push(`${ts} ${msg}`);
+        if (this.debugLogs.length > 100) this.debugLogs.shift();
+    },
+
     // Band config
     band: { min: 14000, max: 20000 },
     fftSize: 4096,
@@ -223,11 +231,12 @@ const audioAnalyzer = {
 
     _initCanvas(canvas) {
         const dpr  = window.devicePixelRatio || 1;
-        // Use parentElement.clientWidth for reliable sizing on iOS Safari —
-        // getBoundingClientRect() can return stale/zero values before layout settles.
         const parent = canvas.parentElement;
-        const w = (parent ? parent.clientWidth : 0) || canvas.getBoundingClientRect().width || 300;
-        const h = canvas.getBoundingClientRect().height || canvas.offsetHeight || 200;
+        const rect = canvas.getBoundingClientRect();
+        const parentClientW = parent ? parent.clientWidth : 0;
+        const w = parentClientW || rect.width || 300;
+        const h = rect.height || canvas.offsetHeight || 200;
+        this._dbg(`_initCanvas ${canvas.id}: dpr=${dpr} rect=${rect.width}x${rect.height} parentClientW=${parentClientW} => ${w}x${h} (bitmap ${Math.round(w*dpr)}x${Math.round(h*dpr)})`);
         canvas.width  = Math.round(w * dpr);
         canvas.height = Math.round(h * dpr);
         const ctx = canvas.getContext('2d');
@@ -355,6 +364,12 @@ const audioAnalyzer = {
         const dpr = window.devicePixelRatio || 1;
         const W = canvas.width / dpr;
         const H = canvas.height / dpr;
+
+        if (W !== this._lastLoggedFFTW) {
+            this._lastLoggedFFTW = W;
+            const cssRect = canvas.getBoundingClientRect();
+            this._dbg(`_drawFFT: W=${W} H=${H} canvas.width=${canvas.width} canvas.height=${canvas.height} dpr=${dpr} getBCR=${cssRect.width}x${cssRect.height}`);
+        }
 
         ctx.fillStyle = this._bg();
         ctx.fillRect(0, 0, W, H);

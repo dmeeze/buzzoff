@@ -163,6 +163,13 @@ document.addEventListener('DOMContentLoaded', () => {
     bindDialog(optionsBtn, optionsDialog, optionsClose);
     bindDialog(helpBtn,    helpDialog,    helpClose);
 
+    helpBtn.addEventListener('click', () => {
+        const el = document.getElementById('debug-log');
+        if (el) el.textContent = audioAnalyzer.debugLogs.length
+            ? audioAnalyzer.debugLogs.join('\n')
+            : '(no logs yet)';
+    });
+
     // ── Help tips — populate text and wire up mobile tap ─────────────────────
 
     // Populate any help-body element that references a TIPS key
