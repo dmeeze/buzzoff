@@ -4,6 +4,7 @@ const audioAnalyzer = {
     // Web Audio
     audioContext: null,
     analyser: null,
+    stream: null,
     microphone: null,
     dataArray: null,
     bufferLength: null,
@@ -129,7 +130,7 @@ const audioAnalyzer = {
         this.historyCanvas = document.getElementById('history-canvas');
         this.historyCtx    = this._initCanvas(this.historyCanvas);
 
-        const stream = await navigator.mediaDevices.getUserMedia({
+        this.stream = await navigator.mediaDevices.getUserMedia({
             audio: {
                 autoGainControl: false,
                 noiseSuppression: false,
@@ -144,7 +145,7 @@ const audioAnalyzer = {
         this.bufferLength = this.analyser.frequencyBinCount;
         this.dataArray    = new Uint8Array(this.bufferLength);
 
-        this.microphone = this.audioContext.createMediaStreamSource(stream);
+        this.microphone = this.audioContext.createMediaStreamSource(this.stream);
         this.microphone.connect(this.analyser);
 
         this.history            = [];
@@ -171,6 +172,10 @@ const audioAnalyzer = {
         if (this.microphone) {
             this.microphone.disconnect();
             this.microphone = null;
+        }
+        if (this.stream) {
+            this.stream.getTracks().forEach(t => t.stop());
+            this.stream = null;
         }
         if (this.audioContext) {
             this.audioContext.close();
@@ -360,9 +365,9 @@ const audioAnalyzer = {
         ctx.fillStyle = this._bg();
         ctx.fillRect(0, 0, W, H);
 
-        const nyquist    = this.audioContext.sampleRate / 2;
-        const displayMin = 0;
-        const displayMax = Math.min(22000, nyquist);
+        const nyquist      = this.audioContext.sampleRate / 2;
+        const displayMin   = 0;
+        const displayMax   = 22000;
         const displayRange = displayMax - displayMin;
 
         const bx1 = Math.max(0, ((this.band.min - displayMin) / displayRange) * W);
@@ -370,7 +375,7 @@ const audioAnalyzer = {
 
         // FFT bars
         const startBin = 1; // skip DC
-        const endBin   = Math.min(this.bufferLength - 1, Math.ceil(displayMax * this.bufferLength / nyquist));
+        const endBin   = Math.min(this.bufferLength - 1, Math.ceil(Math.min(displayMax, nyquist) * this.bufferLength / nyquist));
 
         for (let i = startBin; i <= endBin; i++) {
             const value = this.dataArray[i];
@@ -410,17 +415,33 @@ const audioAnalyzer = {
         ctx.moveTo(0, H - 18); ctx.lineTo(W, H - 18);
         ctx.stroke();
 
+        // Nyquist boundary — vertical amber line when sample rate < 44kHz
+        if (nyquist < displayMax) {
+            const nx = (nyquist / displayRange) * W;
+            ctx.strokeStyle = 'rgba(210,140,0,0.7)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(nx, 0); ctx.lineTo(nx, H - 18);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.font = '10px monospace';
+            const nyqLabel = `${(nyquist / 1000).toFixed(0)}k max`;
+            const nyqLabelW = ctx.measureText(nyqLabel).width;
+            ctx.fillStyle = 'rgba(210,140,0,0.85)';
+            ctx.fillText(nyqLabel, Math.min(W - nyqLabelW - 2, Math.max(2, nx - nyqLabelW - 3)), 10);
+        }
+
         // Frequency labels — ticks across full range
         ctx.font = '10px monospace';
         const ticks = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
         ticks.forEach(khz => {
             const f = khz * 1000;
-            if (f > displayMax) return;
             const x = ((f - displayMin) / displayRange) * W;
             const nearBand = Math.abs(x - bx1) < 18 || Math.abs(x - bx2) < 18;
             if (nearBand) return;
 
-            ctx.strokeStyle = this._a(0.15);
+            ctx.strokeStyle = f > nyquist ? this._a(0.07) : this._a(0.15);
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(x, H - 18); ctx.lineTo(x, H - 14);
@@ -428,7 +449,7 @@ const audioAnalyzer = {
 
             const label = `${khz}k`;
             const labelW = ctx.measureText(label).width;
-            ctx.fillStyle = this._a(0.55);
+            ctx.fillStyle = f > nyquist ? this._a(0.2) : this._a(0.55);
             ctx.fillText(label, Math.min(W - labelW - 2, Math.max(2, x - labelW / 2)), H - 4);
         });
 

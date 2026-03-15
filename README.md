@@ -69,6 +69,6 @@ BuzzOff does not record or store audio. It only analyzes the live frequency spec
 
 ## Technology
 
-BuzzOff is a standalone browser app with no backend and no build step. It uses the Web Audio API to run a configurable FFT (1024, 2048, or 4096 points — ≈43, 21.5, or 10.8 Hz/bin resolution) entirely client-side. It is packaged as a [PWA (Progressive Web App)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps) so it can be installed to a home screen or desktop and used offline without an internet connection. Theming (light, dark, etc) is handled entirely in CSS custom properties. All settings persist locally via localStorage.
+BuzzOff is a standalone browser app with no backend and no build step. It uses the Web Audio API to run a configurable FFT (1024, 2048, or 4096 points — ≈43, 21.5, or 10.8 Hz/bin at 44.1 kHz sample rate) entirely client-side. It is packaged as a [PWA (Progressive Web App)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps) so it can be installed to a home screen or desktop and used offline without an internet connection. Theming (light, dark, etc) is handled entirely in CSS custom properties. All settings persist locally via localStorage.
 
 For local dev, sync the repo locally and open `index.html` in the browser.

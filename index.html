@@ -156,15 +156,22 @@
             <div class="help-body">
                 <p id="sample-rate-info-detail"></p>
 
-                <h3>Why this matters</h3>
-                <p>Detecting a frequency reliably requires a sample rate of <strong>at least twice that frequency</strong> — this is the <a href="https://en.wikipedia.org/wiki/Nyquist%E2%80%93Shannon_sampling_theorem" target="_blank" rel="noopener">Nyquist–Shannon sampling theorem</a>. The highest frequency a given sample rate can capture is called the <a href="https://en.wikipedia.org/wiki/Nyquist_frequency" target="_blank" rel="noopener">Nyquist frequency</a> (half the sample rate). Any sound above that limit is simply invisible to the analyser — it cannot be detected, no matter how loud it is.</p>
-
                 <h3>Things to try</h3>
                 <ul>
                     <li><strong>Disconnect Bluetooth headphones or speakers.</strong> Bluetooth audio devices often force the system into a lower sample rate (typically 8–16 kHz). Switching back to the built-in microphone usually restores 44.1 kHz or 48 kHz.</li>
                     <li><strong>Try a different browser or restart the app.</strong> Some browsers or system audio sessions get locked into a lower rate. Closing other apps that use the microphone and reloading the page may help.</li>
                     <li><strong>Use a desktop or laptop computer.</strong> Mobile browsers sometimes cap the microphone sample rate to conserve battery. A desktop browser is more likely to give you the full 44.1 kHz needed for high-frequency detection.</li>
                 </ul>
+
+                <h3>But why is this a problem?</h3>
+                <p>Detecting a frequency reliably requires a sample rate of <strong>at least twice that frequency</strong> 
+                — this is the <a href="https://en.wikipedia.org/wiki/Nyquist%E2%80%93Shannon_sampling_theorem" target="_blank" rel="noopener">Nyquist–Shannon sampling theorem</a>. 
+                The highest frequency a given sample rate can capture is called the <a href="https://en.wikipedia.org/wiki/Nyquist_frequency" target="_blank" rel="noopener">Nyquist frequency</a> 
+                (half the sample rate). Any sound above that limit is simply invisible to the analyser — the math we need to do to break down the audio into 
+                frequencies means higher frequency sounds just cannot be detected, no matter how loud it is.</p>
+                <p>This is a limitation of your browser, computer or microphone, not of the app.  Please try the options above 
+                like disconnecting bluetooth and stop/start monitoring to try again.</p>
+
             </div>
         </div>
     </dialog>
@@ -233,7 +240,7 @@
 
                 <h3>Installing as an app</h3>
                 <p>BuzzOff can be added to your home screen or desktop so it opens like a regular app.  That means you can install it once
-                and then use it even if you don't have internet acces:</p>
+                and then use it even if you don't have internet access:</p>
                 <ul>
                     <li><strong>iPhone/iPad:</strong> tap the Share button in Safari, then <em>Add to Home Screen</em>.</li>
                     <li><strong>Android (Chrome):</strong> tap the three-dot menu, then <em>Add to Home Screen</em> or <em>Install app</em>.</li>

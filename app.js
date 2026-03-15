@@ -2,10 +2,10 @@
 
 // ── Control help text (single source of truth for tooltips) ──────────────────
 const TIPS = {
-    frequencyBand:    'The range of frequencies to listen for. Annoy covers common deterrent tones, Mosquito targets ultrasonic repellers, or set a Custom range.',
+    frequencyBand:    'The range of frequencies to listen for. Annoy covers common deterrent tones, Mosquito targets anti-loitering teen-deterrent tones, or set a Custom range.',
     sensitivity:      'How strong a signal must be to trigger detection. Low = fewer false positives. High = catches weaker tones.',
     filterWhiteNoise: 'Ignores broadband noise (<a href="https://en.wikipedia.org/wiki/White_noise" target="_blank" rel="noopener">white noise</a>, fans, fabric rustling) so only distinct, narrow-band tones trigger an alert. Turn off if you\'re missing real detections in a quiet environment.',
-    spectrumDetail:   'Controls how many frequency bins are analyzed each frame. Low (1024) is easiest on the CPU and recommended for older or mobile devices. High (4096) gives the finest resolution but costs more.',
+    spectrumDetail:   'Controls how many frequency bins are analyzed each frame. Low (1024) is easiest on the CPU and recommended for older or mobile devices. Med (2048) is a balanced middle ground. High (4096) gives the finest resolution but costs more.',
     whenDetected:     'Actions to take when a tone is detected. Notify sends a browser notification, Beep plays an audible alert, Tab title updates the page title, Flash blinks the display.',
     theme:            'Color scheme. Auto follows your system preference.',
 };
@@ -409,8 +409,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const maxKhz = (nyquist / 1000).toFixed(0);
             const bandKhz = (bandMax / 1000).toFixed(0);
             document.getElementById('sample-rate-info-detail').textContent =
-                `Your browser is capturing audio at ${sr} kHz. The Nyquist frequency for this rate is ${maxKhz} kHz, so frequencies above that — including your selected band up to ${bandKhz} kHz — cannot be captured or detected.`;
-            statusSubtext.innerHTML =
+                `Your browser is capturing audio at ${sr} kHz, which means that frequencies above ${maxKhz} kHz — including your selected band up to ${bandKhz} kHz — cannot be detected.`;
+                statusSubtext.innerHTML =
                 `<span class="subtext-warn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true" style="width:1em;height:1em;vertical-align:-0.125em;fill:currentColor"><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.2-35.2-19c-7.6-11.8-8-26.5-.8-38.8l216-368C227.5 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg> Reduced accuracy — sample rate too low. <button class="warn-more-btn">learn more</button></span>`;
             statusSubtext.querySelector('.warn-more-btn')
                 .addEventListener('click', () => sampleRateInfoDialog.showModal());
