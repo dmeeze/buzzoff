@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabTitleToggle = document.getElementById('tab-title-toggle');
     const flashToggle    = document.getElementById('flash-toggle');
     const flashOverlay   = document.getElementById('flash-overlay');
-    const timeTabs       = document.querySelectorAll('.time-tab');
+    const eventLog       = document.getElementById('event-log');
     const themeTabs      = document.querySelectorAll('.theme-tab');
     const helpBtn        = document.getElementById('help-btn');
     const helpDialog     = document.getElementById('help-dialog');
@@ -211,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     startStopBtn.addEventListener('click', async () => {
         if (!isRunning) {
+            startStopBtn.disabled = true;
             try {
                 setStatus('idle', 'Starting…', '');
                 await audioAnalyzer.start();
@@ -220,11 +221,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 startStopBtn.classList.add('running');
                 setStatus('clear', 'OK', getSubtext());
                 updateSampleRateWarning();
+                appendLogEntry('Started monitoring', 'log-start');
             } catch (err) {
                 setStatus('idle', 'READY', 'Microphone access denied');
                 console.error(err);
+            } finally {
+                startStopBtn.disabled = false;
             }
         } else {
+            appendLogEntry('Stopped monitoring', 'log-stop');
             audioAnalyzer.stop();
             isRunning = false;
             setStartBtn('▶', 'Start');
@@ -373,27 +378,41 @@ document.addEventListener('DOMContentLoaded', () => {
         startStopBtn.querySelector('.start-label').textContent = label;
     }
 
-    // ── Time window tabs ──────────────────────────────
+    // ── Event log ─────────────────────────────────────
 
-    timeTabs.forEach(btn => {
-        btn.addEventListener('click', () => {
-            timeTabs.forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
-            audioAnalyzer.setHistoryWindow(parseInt(btn.dataset.minutes, 10));
-        });
-    });
+    function appendLogEntry(message, cssClass) {
+        const emptyEl = eventLog.querySelector('.event-log-empty');
+        if (emptyEl) emptyEl.remove();
+
+        const now = new Date();
+        const time = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        const entry = document.createElement('div');
+        entry.className = `event-log-entry${cssClass ? ' ' + cssClass : ''}`;
+        entry.innerHTML = `<span class="log-time">${time}</span><span>${message}</span>`;
+        eventLog.appendChild(entry);
+        eventLog.scrollTop = eventLog.scrollHeight;
+    }
+
+    // Show placeholder until first event
+    const placeholder = document.createElement('div');
+    placeholder.className = 'event-log-empty';
+    placeholder.textContent = 'No events yet';
+    eventLog.appendChild(placeholder);
 
     // ── Detection callback ────────────────────────────
 
     function handleDetectionChange(state) {
         if (state === 'detected') {
             setStatus('detected', 'DETECTED', getSubtext());
+            appendLogEntry('Sound detected', 'log-detected');
             if (notifyEnabled)   sendNotification();
             if (beepEnabled)     playBeep();
             if (tabTitleEnabled) document.title = '\u26a0 DETECTED \u2013 BuzzOff';
             if (flashEnabled)    triggerFlash();
         } else {
             setStatus('clear', 'OK', getSubtext());
+            appendLogEntry('Sound stopped', 'log-cleared');
             if (tabTitleEnabled) document.title = ORIGINAL_TITLE;
         }
     }
@@ -490,82 +509,5 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isRunning) audioAnalyzer.resizeCanvases();
     });
     resizeObserver.observe(document.getElementById('fft-canvas'));
-    resizeObserver.observe(document.getElementById('history-canvas'));
-
-    // ── History tooltip ───────────────────────────────
-
-    const histCanvas = document.getElementById('history-canvas');
-    const tooltip    = document.getElementById('history-tooltip');
-
-    // Convert a performance.now() timestamp to a wall-clock Date
-    function tsToDate(ts) {
-        return new Date(Date.now() - (performance.now() - ts));
-    }
-
-    function formatClock(date) {
-        return date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    }
-
-    function showTooltip(clientX, clientY) {
-        const history = audioAnalyzer.history;
-        if (!history.length) { tooltip.style.display = 'none'; return; }
-
-        const rect           = histCanvas.getBoundingClientRect();
-        const xInCanvas      = clientX - rect.left;
-        const windowSeconds  = audioAnalyzer.historyWindowMinutes * 60;
-        const visibleEntries = Math.min(history.length, windowSeconds);
-        const colW           = rect.width / windowSeconds;
-        const col            = Math.floor(xInCanvas / colW);
-        const entryOffset    = col - (windowSeconds - visibleEntries);
-
-        if (entryOffset < 0 || entryOffset >= visibleEntries) {
-            tooltip.style.display = 'none';
-            return;
-        }
-
-        const startIdx = history.length - visibleEntries;
-        const entryIdx = startIdx + entryOffset;
-        const entry    = history[entryIdx];
-        const secondsAgo = Math.round((performance.now() - entry.ts) / 1000);
-        const agoLabel   = secondsAgo < 60
-            ? `${secondsAgo}s ago`
-            : `${Math.floor(secondsAgo / 60)}m ${secondsAgo % 60}s ago`;
-
-        if (!entry.detected) {
-            tooltip.style.display = 'none';
-            return;
-        }
-
-        // Expand to the full contiguous detection run containing this entry
-        let runStart = entryIdx;
-        let runEnd   = entryIdx;
-        while (runStart > 0                  && history[runStart - 1].detected) runStart--;
-        while (runEnd   < history.length - 1 && history[runEnd   + 1].detected) runEnd++;
-
-        const startClock = formatClock(tsToDate(history[runStart].ts));
-        const isOngoing  = runEnd === history.length - 1 && audioAnalyzer.detectionState === 'detected';
-        const endClock   = isOngoing ? 'now' : formatClock(tsToDate(history[runEnd].ts));
-
-        tooltip.innerHTML = `<strong>⚠ Detected</strong> ${agoLabel}<br><span class="tip-time">${startClock} – ${endClock}</span>`;
-        tooltip.style.display = 'block';
-
-        const TIP_W = tooltip.offsetWidth;
-        const left  = (clientX + 12 + TIP_W > window.innerWidth) ? clientX - TIP_W - 8 : clientX + 12;
-        tooltip.style.left = `${left}px`;
-        tooltip.style.top  = `${Math.max(4, clientY - 36)}px`;
-    }
-
-    histCanvas.addEventListener('mousemove',  e => showTooltip(e.clientX, e.clientY));
-    histCanvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
-
-    histCanvas.addEventListener('touchstart', e => {
-        e.preventDefault();
-        showTooltip(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: false });
-    histCanvas.addEventListener('touchmove', e => {
-        e.preventDefault();
-        showTooltip(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: false });
-    histCanvas.addEventListener('touchend', () => { tooltip.style.display = 'none'; });
 
 });

@@ -434,47 +434,70 @@ html, body {
     font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
-/* ── Time tabs ───────────────────────────────────── */
-
-.time-tabs {
-    display: flex;
-    gap: 0.2rem;
-    background: var(--bg3);
-    padding: 2px;
-    border-radius: 6px;
-}
-
-.time-tab {
-    padding: 0.2rem 0.55rem;
-    border: none;
-    border-radius: 5px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    background: transparent;
-    color: var(--text-muted);
-    transition: all 0.15s;
-}
-
-.time-tab.active {
-    background: var(--bg);
-    color: var(--accent);
-}
-
 /* ── History section ─────────────────────────────── */
 
 .history-section {
     flex: 1;
-    min-height: 110px;
+    min-height: 80px;
 }
 
-/* ── History canvas ──────────────────────────────── */
+/* ── Event log ───────────────────────────────────── */
 
-.history-canvas {
-    display: block;
-    width: 100%;
+.event-log {
     flex: 1;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    padding: 0.4rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
     min-height: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.event-log::-webkit-scrollbar {
+    width: 5px;
+}
+
+.event-log::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.event-log::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+
+.event-log-entry {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.6em;
+    line-height: 1.5;
+}
+
+.event-log-entry .log-time {
+    flex-shrink: 0;
+    opacity: 0.6;
+}
+
+.event-log-entry.log-detected {
+    color: var(--accent);
+}
+
+.event-log-entry.log-cleared {
+    color: var(--text-muted);
+}
+
+.event-log-empty {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    opacity: 0.45;
+    padding: 0.25rem 0;
 }
 
 /* ── Controls section ────────────────────────────── */
@@ -880,25 +903,4 @@ dialog .help-tip.open .help-tip-text {
     100% { opacity: 0; }
 }
 
-/* ── History tooltip ─────────────────────────────── */
 
-#history-tooltip {
-    position: fixed;
-    pointer-events: none;
-    display: none;
-    padding: 0.3rem 0.6rem;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    color: var(--text);
-    white-space: nowrap;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-}
-
-#history-tooltip .tip-time {
-    color: var(--text-muted);
-    font-size: 0.72rem;
-}

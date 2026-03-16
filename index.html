@@ -51,13 +51,8 @@
         <section class="section history-section">
             <div class="section-header">
                 <span class="section-title">Detection History</span>
-                <div class="time-tabs">
-                    <button class="time-tab" data-minutes="5">5m</button>
-                    <button class="time-tab active" data-minutes="15">15m</button>
-                    <button class="time-tab" data-minutes="30">30m</button>
-                </div>
             </div>
-            <canvas id="history-canvas" class="history-canvas"></canvas>
+            <div id="event-log" class="event-log"></div>
         </section>
 
         <!-- Live FFT -->
@@ -257,7 +252,6 @@
     </dialog>
 
     <div id="flash-overlay"></div>
-    <div id="history-tooltip"></div>
 
     <script src="audioAnalyzer.js?v=__VERSION__"></script>
     <script src="app.js?v=__VERSION__"></script>

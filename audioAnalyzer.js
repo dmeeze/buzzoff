@@ -14,8 +14,6 @@ const audioAnalyzer = {
     // Canvases
     fftCanvas: null,
     fftCtx: null,
-    historyCanvas: null,
-    historyCtx: null,
 
 
     // Band config
@@ -28,10 +26,6 @@ const audioAnalyzer = {
     detectionState: 'idle',     // 'idle' | 'clear' | 'detected'
     noiseFloor: true,           // require spectral spike, not just broadband noise
     noiseFloorRatio: 1.5,       // in-band max must be this × out-of-band avg
-
-    // History: one entry per second, max 1800 (30 min)
-    history: [],
-    historyWindowMinutes: 15,
 
     // Timing
     lastSampleTime: 0,
@@ -125,10 +119,8 @@ const audioAnalyzer = {
     // ── Lifecycle ──────────────────────────────────────
 
     async start() {
-        this.fftCanvas     = document.getElementById('fft-canvas');
-        this.fftCtx        = this._initCanvas(this.fftCanvas);
-        this.historyCanvas = document.getElementById('history-canvas');
-        this.historyCtx    = this._initCanvas(this.historyCanvas);
+        this.fftCanvas = document.getElementById('fft-canvas');
+        this.fftCtx    = this._initCanvas(this.fftCanvas);
 
         this.stream = await navigator.mediaDevices.getUserMedia({
             audio: {
@@ -148,7 +140,6 @@ const audioAnalyzer = {
         this.microphone = this.audioContext.createMediaStreamSource(this.stream);
         this.microphone.connect(this.analyser);
 
-        this.history            = [];
         this.consecutiveSeconds = 0;
         this.detectionState     = 'clear';
         this.lastSampleTime     = performance.now();
@@ -183,17 +174,13 @@ const audioAnalyzer = {
         }
         this.detectionState = 'idle';
 
-        const clearCanvas = (canvas, ctx) => {
-            if (ctx) {
-                const dpr = window.devicePixelRatio || 1;
-                const w = canvas.width / dpr;
-                const h = canvas.height / dpr;
-                ctx.fillStyle = this._bg();
-                ctx.fillRect(0, 0, w, h);
-            }
-        };
-        clearCanvas(this.fftCanvas, this.fftCtx);
-        clearCanvas(this.historyCanvas, this.historyCtx);
+        if (this.fftCtx) {
+            const dpr = window.devicePixelRatio || 1;
+            const w = this.fftCanvas.width / dpr;
+            const h = this.fftCanvas.height / dpr;
+            this.fftCtx.fillStyle = this._bg();
+            this.fftCtx.fillRect(0, 0, w, h);
+        }
     },
 
     // ── Config setters ─────────────────────────────────
@@ -206,10 +193,6 @@ const audioAnalyzer = {
     setSensitivity(sliderValue) {
         // maps 1→120 (insensitive), 100→10 (very sensitive)
         this.threshold = Math.round(120 - (sliderValue / 100) * 110);
-    },
-
-    setHistoryWindow(minutes) {
-        this.historyWindowMinutes = minutes;
     },
 
     setNoiseFloor(enabled) {
@@ -243,8 +226,7 @@ const audioAnalyzer = {
 
     resizeCanvases() {
         if (!this.fftCanvas) return;
-        this.fftCtx     = this._initCanvas(this.fftCanvas);
-        this.historyCtx = this._initCanvas(this.historyCanvas);
+        this.fftCtx = this._initCanvas(this.fftCanvas);
     },
 
     // ── Core loop ──────────────────────────────────────
@@ -281,7 +263,6 @@ const audioAnalyzer = {
 
         this.analyser.getByteFrequencyData(this.dataArray);
         this._drawFFT();
-        this._drawHistory();
     },
 
     _sample(now) {
@@ -307,8 +288,6 @@ const audioAnalyzer = {
             if (this.onDetectionChange) this.onDetectionChange(newState);
         }
 
-        this.history.push({ ts: now, intensity, detected });
-        if (this.history.length > 1800) this.history.shift();
     },
 
     _getBandBins() {
@@ -486,68 +465,6 @@ const audioAnalyzer = {
         ctx.fillText(bandLabel, Math.max(bx1 + 2, midX - lw / 2), 12);
     },
 
-    // ── History drawing ────────────────────────────────
-
-    _drawHistory() {
-        const canvas = this.historyCanvas;
-        const ctx    = this.historyCtx;
-        const dpr = window.devicePixelRatio || 1;
-        const W = canvas.width / dpr;
-        const H = canvas.height / dpr;
-
-        ctx.fillStyle = this._bg();
-        ctx.fillRect(0, 0, W, H);
-
-        const windowSeconds  = this.historyWindowMinutes * 60;
-        const visibleEntries = Math.min(this.history.length, windowSeconds);
-        if (visibleEntries === 0) {
-            ctx.fillStyle = this._a(0.45);
-            ctx.font = '11px monospace';
-            ctx.fillText('No data yet', W / 2 - 36, H / 2 + 4);
-            return;
-        }
-
-        const startIdx   = this.history.length - visibleEntries;
-        const colW       = W / windowSeconds;
-
-        for (let i = 0; i < visibleEntries; i++) {
-            const entry = this.history[startIdx + i];
-            const x     = (windowSeconds - visibleEntries + i) * colW;
-            const t     = entry.intensity / 255;
-
-            let color;
-            if (entry.detected) {
-                color = this._detectedBar(t);
-            } else if (t > 0.05) {
-                color = this._subThreshBar(t);
-            } else {
-                color = this._bg();
-            }
-
-            ctx.fillStyle = color;
-            ctx.fillRect(x, 0, colW + 1, H - 14);
-        }
-
-        // "now" edge marker
-        ctx.strokeStyle = this._a(0.35);
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(W - 0.5, 0);
-        ctx.lineTo(W - 0.5, H - 14);
-        ctx.stroke();
-
-        // Time labels
-        ctx.fillStyle = this._a(0.60);
-        ctx.font = '9px monospace';
-
-        const labelCount = 5;
-        for (let i = 0; i <= labelCount; i++) {
-            const secondsAgo = Math.round((windowSeconds / labelCount) * (labelCount - i));
-            const x = (i / labelCount) * W;
-            const label = secondsAgo === 0 ? 'now' : `-${Math.round(secondsAgo / 60)}m`;
-            ctx.fillText(label, i === labelCount ? x - ctx.measureText(label).width - 2 : x + 2, H - 3);
-        }
-    }
 };
 
 window.audioAnalyzer = audioAnalyzer;

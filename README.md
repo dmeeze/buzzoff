@@ -32,7 +32,7 @@ Three levels — Low (1024 bins), Med (2048 bins), High (4096 bins) — trade fr
 
 ### Detection history
 
-A scrolling timeline shows signal intensity over the last 5, 15, or 30 minutes. Hover or tap a detection segment to see its exact time range.
+A scrolling event log shows timestamped entries for key events: started monitoring, sound detected, sound stopped, and stopped monitoring.
 
 ### Alerts
 
