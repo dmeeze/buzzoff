@@ -492,6 +492,10 @@ html, body {
     color: var(--text-muted);
 }
 
+.event-log-entry.log-perf {
+    color: var(--warn, #d4a017);
+}
+
 .event-log-empty {
     font-family: 'SF Mono', 'Fira Code', monospace;
     font-size: 0.75rem;

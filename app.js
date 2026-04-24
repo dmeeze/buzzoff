@@ -215,7 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 setStatus('idle', 'Starting…', '');
                 await audioAnalyzer.start();
-                audioAnalyzer.onDetectionChange = handleDetectionChange;
+                audioAnalyzer.onDetectionChange      = handleDetectionChange;
+                audioAnalyzer.onPerformanceDegraded  = handlePerformanceDegraded;
                 isRunning = true;
                 setStartBtn('■', 'Stop');
                 startStopBtn.classList.add('running');
@@ -401,6 +402,21 @@ document.addEventListener('DOMContentLoaded', () => {
     eventLog.appendChild(placeholder);
 
     // ── Detection callback ────────────────────────────
+
+    function handlePerformanceDegraded() {
+        const detailOrder = ['high', 'med', 'low'];
+        const current = [...fftDetailTabs].find(t => t.classList.contains('active'))?.dataset.value ?? 'high';
+        const nextIdx = detailOrder.indexOf(current) + 1;
+        if (nextIdx < detailOrder.length) {
+            const next = detailOrder[nextIdx];
+            fftDetailTabs.forEach(t => t.classList.toggle('active', t.dataset.value === next));
+            audioAnalyzer.setFftSize(FFT_DETAIL_SIZES[next]);
+            appendLogEntry(`Display is slow — reduced spectrum detail to ${next} for better performance`, 'log-perf');
+            saveOptions();
+        } else {
+            appendLogEntry('Display is slow — spectrum detail already at minimum', 'log-perf');
+        }
+    }
 
     function handleDetectionChange(state) {
         if (state === 'detected') {

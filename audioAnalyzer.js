@@ -36,7 +36,9 @@ const audioAnalyzer = {
     _frameTimes: [],        // rolling window of recent frame durations
 
     // Callbacks
-    onDetectionChange: null,    // fn(state) — 'clear' | 'detected'
+    onDetectionChange: null,        // fn(state) — 'clear' | 'detected'
+    onPerformanceDegraded: null,    // fn() — fired once when sustained fps < 25
+    _perfDegraded: false,
 
     // ── Theme helpers ───────────────────────────────────
 
@@ -145,6 +147,7 @@ const audioAnalyzer = {
         this.lastSampleTime     = performance.now();
         this._renderInterval    = 0;
         this._lastRenderTime    = 0;
+        this._perfDegraded      = false;
         this._frameTimes        = [];
 
         this._draw();
@@ -257,6 +260,11 @@ const audioAnalyzer = {
                 else if (avg > 40) this._renderInterval = 50;   // < ~25fps → target 20fps
                 else if (avg > 25) this._renderInterval = 33;   // < ~40fps → target 30fps
                 else               this._renderInterval = 0;    // fast enough → native rate
+
+                if (!this._perfDegraded && avg > 40 && this.onPerformanceDegraded) {
+                    this._perfDegraded = true;
+                    this.onPerformanceDegraded();
+                }
             }
         }
         this._lastRenderTime = now;
